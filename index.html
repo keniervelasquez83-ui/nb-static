@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./catalog-data.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Space+Mono:wght@400;700&amp;family=Archivo:wght@400;500;600;700;900&amp;family=Cormorant+Garamond:ital,wght@0,500;0,600;1,600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;padding:0;background:radial-gradient(1100px 600px at 85% -10%, rgba(198,255,58,.06), transparent 60%),radial-gradient(900px 600px at -5% 110%, rgba(182,107,255,.07), transparent 60%),#0a0a0c;color:#ECEEF2;font-family:'Archivo',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:#C6FF3A}a:hover{color:#dcff7d}
+/* ============ RITMOS POR FAMILIA ============
+   Cada familia late al ritmo de su genero. La amplitud la pone --pmax, que sale del tier:
+   cuanto mas arriba, mas marcado. Son animaciones de opacidad sobre una capa de color,
+   asi que NO tocan la nebulosa de abajo: no la escalan ni la difuminan. */
+/* SUELO DEL PULSO (31-ago). Antes estos ritmos bajaban HASTA CERO: rPoli hacia
+   1-0-.7-0-1-0-1, que no es un latido sino un estrobo, y era el "destello que va y
+   viene" que Ken no soportaba. Ahora ninguno baja de ~.42 del maximo: la capa de color
+   NUNCA desaparece, solo se hincha y se deshincha. El ritmo de cada familia se conserva
+   entero (mismas paradas, misma forma), pero deja de parpadear. Ademas es la condicion
+   para que se vea el FLUJO: si el color se apaga, su movimiento no se aprecia. */
+@keyframes rLento{0%,100%{opacity:calc(var(--pmax)*.42)}45%{opacity:var(--pmax)}}
+@keyframes rSeco {0%{opacity:var(--pmax)}14%{opacity:calc(var(--pmax)*.48)}100%{opacity:calc(var(--pmax)*.42)}}
+@keyframes rMotor{0%,100%{opacity:calc(var(--pmax)*.44)}50%{opacity:var(--pmax)}}
+@keyframes rSwing{0%{opacity:var(--pmax)}38%{opacity:calc(var(--pmax)*.46)}62%{opacity:calc(var(--pmax)*.82)}100%{opacity:calc(var(--pmax)*.42)}}
+@keyframes rRoto {0%{opacity:calc(var(--pmax)*.94)}11%{opacity:calc(var(--pmax)*.42)}27%{opacity:var(--pmax)}34%{opacity:calc(var(--pmax)*.48)}61%{opacity:calc(var(--pmax)*.88)}68%{opacity:calc(var(--pmax)*.42)}88%{opacity:calc(var(--pmax)*.76)}100%{opacity:calc(var(--pmax)*.94)}}
+@keyframes rPoli {0%{opacity:var(--pmax)}16%{opacity:calc(var(--pmax)*.44)}33%{opacity:calc(var(--pmax)*.82)}50%{opacity:calc(var(--pmax)*.44)}66%{opacity:var(--pmax)}83%{opacity:calc(var(--pmax)*.44)}100%{opacity:var(--pmax)}}
+@keyframes rSuave{0%,100%{opacity:calc(var(--pmax)*.48)}50%{opacity:calc(var(--pmax)*.86)}}
+@keyframes rCresc{0%{opacity:calc(var(--pmax)*.42)}78%{opacity:var(--pmax)}86%{opacity:calc(var(--pmax)*.5)}100%{opacity:calc(var(--pmax)*.42)}}
+/* DERIVA DE COLOR: la ficha se desliza hacia su segundo color. Las dos capas de color
+   tienen los focos en esquinas opuestas, asi que al cruzarse no solo cambia el tono:
+   el centro de gravedad del color se desplaza fisicamente por la tarjeta. */
+@keyframes deriva{0%{opacity:calc(var(--dmax)*.45)}42%{opacity:var(--dmax)}68%{opacity:calc(var(--dmax)*.6)}100%{opacity:calc(var(--dmax)*.45)}}
+/* FLUJO: los colores CAMBIAN DE SITIO dentro de la tarjeta. Cada capa de color lleva dos
+   manchas, y cada mancha tiene su propio background-position animado — se cruzan entre
+   ellas, y las dos capas van en direcciones CONTRARIAS, asi que donde estaba el color 1
+   acaba el color 2 y al reves. Como cada mancha tiene ademas un background-size distinto,
+   recorren distancias distintas con el mismo porcentaje: el campo se deforma en vez de
+   deslizarse rigido, y eso es lo que da la sensacion de liquido.
+   La NEBULOSA de debajo sigue quieta y nitida: no se mueve la textura, se mueve el COLOR. */
+/* OJO CON EL SENTIDO: con background-size al 200%, un porcentaje MAYOR desplaza la mancha
+   hacia la IZQUIERDA (x = ancho * (1 - p)). Contraintuitivo, y es facil equivocarse.
+   FALLO ANTERIOR, importante: las dos manchas de una MISMA capa iban en direcciones
+   opuestas. Como son del mismo color, una se marchaba justo cuando la otra llegaba y el
+   reparto de color quedaba igual — se anulaban, y no se veia nada aunque la animacion
+   corriera. Ahora las DOS manchas de cada capa viajan JUNTAS (con caminos verticales
+   distintos, para que el grupo se deforme) y son LAS CAPAS las que se cruzan entre si:
+   el color 1 empieza a la izquierda y acaba a la derecha, el color 2 al reves.
+   Eso es lo que pidio Ken: que donde estaba un color acabe el otro. */
+/* Recorridos CERRADOS (el 100% vuelve al 0%), asi que van con 'infinite' y SIN
+   'alternate'. Ese fue el error de la version anterior: ir y volver por el mismo camino
+   es literalmente punto A - punto B, y Ken lo dijo: "el agua no fluye solo de A a B, va
+   a donde sea". Con el bucle cerrado y cinco paradas irregulares, cada franja deambula
+   y no se le ve el patron. Ademas cada capa lleva TRES franjas con tiles de distinto
+   tamano: con la misma parada recorren distancias distintas, asi que nunca se mueven
+   como un bloque rigido. */
+/* ============ CORRIENTE: UN PATRON POR FAMILIA (23) ============
+   Cada familia tiene su propio recorrido, no uno compartido. Los parametros salen de como
+   suena el genero: [fx, fy] son las frecuencias de la curva de Lissajous — cuanto mas
+   altas y mas dispares, mas enrevesado el trazo (avant-garde va a 3:4, doom a 1:1).
+   Ax/Ay dan la forma del recorrido (doom casi vertical, hip-hop casi horizontal) y AS
+   cuanto cambia de tamano la masa por el camino.
+   DESFASES [0,.5,.25,.75]: repartidos, y bien repartidos tambien en cualquier PREFIJO,
+   porque los tiers 3-4 usan solo las tres primeras. Es lo que evita que la ficha se
+   quede vacia en algun instante del ciclo.
+   El FRENO de cada patron se calcula solo a partir de fx+fy: los recorridos enrevesados
+   cubren mas terreno y se perciben mas rapidos, asi que alargan su ciclo. */
+@keyframes mv0{
+  0%{background-position:50% 50%,50% 50%,66% 94%,34% 6%;background-size:300% 300%,240.1% 240.1%,333.6% 333.6%,373.1% 373.1%}
+  14.3%{background-position:62.5% 84.4%,37.5% 15.6%,60% 77.4%,40% 22.6%;background-size:372.1% 372.1%,355.7% 355.7%,228.2% 228.2%,272.5% 272.5%}
+  28.6%{background-position:65.6% 92.9%,34.4% 7.1%,46.4% 40.2%,53.6% 59.8%;background-size:267.9% 267.9%,335.1% 335.1%,298.3% 298.3%,239.2% 239.2%}
+  42.9%{background-position:56.9% 69.1%,43.1% 30.9%,35.6% 10.4%,64.4% 89.6%;background-size:242.1% 242.1%,228.7% 228.7%,372.5% 372.5%,354.6% 354.6%}
+  57.1%{background-position:43.1% 30.9%,56.9% 69.1%,35.6% 10.4%,64.4% 89.6%;background-size:357.9% 357.9%,296.7% 296.7%,269.4% 269.4%,336.5% 336.5%}
+  71.4%{background-position:34.4% 7.1%,65.6% 92.9%,46.4% 40.2%,53.6% 59.8%;background-size:332.1% 332.1%,372.8% 372.8%,241.1% 241.1%,229.1% 229.1%}
+  85.7%{background-position:37.5% 15.6%,62.5% 84.4%,60% 77.4%,40% 22.6%;background-size:227.9% 227.9%,270.9% 270.9%,356.8% 356.8%,295% 295%}
+  100%{background-position:50% 50%,50% 50%,66% 94%,34% 6%;background-size:300% 300%,240.1% 240.1%,333.6% 333.6%,373.1% 373.1%}
+}
+@keyframes mv1{
+  0%{background-position:50% 71.2%,50% 28.8%,90% 79.1%,10% 20.9%;background-size:294% 294%,222.8% 222.8%,334% 334%,380.9% 380.9%}
+  14.3%{background-position:89% 43.6%,11% 56.4%,41.1% 14.6%,58.9% 85.4%;background-size:332.2% 332.2%,380.6% 380.6%,224% 224%,209.7% 209.7%}
+  28.6%{background-position:32.6% 40.4%,67.4% 59.6%,14% 84.7%,86% 15.3%;background-size:225.2% 225.2%,209.2% 209.2%,380.2% 380.2%,359% 359%}
+  42.9%{background-position:18.7% 73.7%,81.3% 26.3%,74.9% 22.9%,25.1% 77.1%;background-size:379.8% 379.8%,360.3% 360.3%,208.7% 208.7%,261.2% 261.2%}
+  57.1%{background-position:81.3% 16.9%,18.7% 83.1%,74.9% 64.1%,25.1% 35.9%;background-size:208.2% 208.2%,259.4% 259.4%,361.6% 361.6%,288.1% 288.1%}
+  71.4%{background-position:67.4% 86%,32.6% 14%,14% 51.6%,86% 48.4%;background-size:362.8% 362.8%,290.1% 290.1%,257.6% 257.6%,337.4% 337.4%}
+  85.7%{background-position:11% 18.3%,89% 81.7%,41.1% 32.9%,58.9% 67.1%;background-size:255.8% 255.8%,335.7% 335.7%,292% 292%,221.7% 221.7%}
+  100%{background-position:50% 71.2%,50% 28.8%,90% 79.1%,10% 20.9%;background-size:294% 294%,222.8% 222.8%,334% 334%,380.9% 380.9%}
+}
+@keyframes mv2{
+  0%{background-position:50% 80.4%,50% 19.6%,86% 59.9%,14% 40.1%;background-size:300% 300%,243.4% 243.4%,331.8% 331.8%,369.1% 369.1%}
+  14.3%{background-position:78.1% 52.9%,21.9% 47.1%,72.4% 18.1%,27.6% 81.9%;background-size:368.2% 368.2%,352.7% 352.7%,232.1% 232.1%,273.9% 273.9%}
+  28.6%{background-position:85.1% 18.3%,14.9% 81.7%,42% 54.3%,58% 45.7%;background-size:269.6% 269.6%,333.2% 333.2%,298.4% 298.4%,242.5% 242.5%}
+  42.9%{background-position:65.6% 61.2%,34.4% 38.8%,17.6% 80%,82.4% 20%;background-size:245.3% 245.3%,232.5% 232.5%,368.6% 368.6%,351.7% 351.7%}
+  57.1%{background-position:34.4% 76.7%,65.6% 23.3%,17.6% 32.4%,82.4% 67.6%;background-size:354.7% 354.7%,296.9% 296.9%,271.1% 271.1%,334.5% 334.5%}
+  71.4%{background-position:14.9% 26.9%,85.1% 73.1%,42% 27.9%,58% 72.1%;background-size:330.4% 330.4%,368.9% 368.9%,244.3% 244.3%,233% 233%}
+  85.7%{background-position:21.9% 33.6%,78.1% 66.4%,72.4% 77.5%,27.6% 22.5%;background-size:231.8% 231.8%,272.5% 272.5%,353.7% 353.7%,295.3% 295.3%}
+  100%{background-position:50% 80.4%,50% 19.6%,86% 59.9%,14% 40.1%;background-size:300% 300%,243.4% 243.4%,331.8% 331.8%,369.1% 369.1%}
+}
+@keyframes mv3{
+  0%{background-position:50% 84%,50% 16%,80% 25.3%,20% 74.7%;background-size:294% 294%,224.4% 224.4%,333% 333%,378.9% 378.9%}
+  14.3%{background-position:73.5% 18.4%,26.5% 81.6%,68.7% 22.4%,31.3% 77.6%;background-size:331.3% 331.3%,378.6% 378.6%,225.6% 225.6%,211.6% 211.6%}
+  28.6%{background-position:79.2% 30.1%,20.8% 69.9%,43.3% 87%,56.7% 13%;background-size:226.8% 226.8%,211.1% 211.1%,378.3% 378.3%,357.5% 357.5%}
+  42.9%{background-position:63% 90.5%,37% 9.5%,23% 61.2%,77% 38.8%;background-size:377.8% 377.8%,358.8% 358.8%,210.6% 210.6%,262% 262%}
+  57.1%{background-position:37% 51.9%,63% 48.1%,23% 8%,77% 92%;background-size:210.2% 210.2%,260.2% 260.2%,360% 360%,288.2% 288.2%}
+  71.4%{background-position:20.8% 8.7%,79.2% 91.3%,43.3% 57.5%,56.7% 42.5%;background-size:361.2% 361.2%,290.1% 290.1%,258.4% 258.4%,336.4% 336.4%}
+  85.7%{background-position:26.5% 66.5%,73.5% 33.5%,68.7% 88.6%,31.3% 11.4%;background-size:256.7% 256.7%,334.8% 334.8%,292.1% 292.1%,223.3% 223.3%}
+  100%{background-position:50% 84%,50% 16%,80% 25.3%,20% 74.7%;background-size:294% 294%,224.4% 224.4%,333% 333%,378.9% 378.9%}
+}
+@keyframes mv4{
+  0%{background-position:50% 56.8%,50% 43.2%,90% 70.9%,10% 29.1%;background-size:300% 300%,248.2% 248.2%,329.1% 329.1%,363.2% 363.2%}
+  14.3%{background-position:81.3% 70.6%,18.7% 29.4%,74.9% 57.7%,25.1% 42.3%;background-size:362.4% 362.4%,348.2% 348.2%,237.9% 237.9%,276.2% 276.2%}
+  28.6%{background-position:89% 68.9%,11% 31.1%,41.1% 38.7%,58.9% 61.3%;background-size:272.2% 272.2%,330.3% 330.3%,298.6% 298.6%,247.4% 247.4%}
+  42.9%{background-position:67.4% 53%,32.6% 47%,14% 28.2%,86% 71.8%;background-size:250% 250%,238.3% 238.3%,362.7% 362.7%,347.2% 347.2%}
+  57.1%{background-position:32.6% 34.8%,67.4% 65.2%,14% 34.1%,86% 65.9%;background-size:350% 350%,297.1% 297.1%,273.5% 273.5%,331.6% 331.6%}
+  71.4%{background-position:11% 28.1%,89% 71.9%,41.1% 52%,58.9% 48%;background-size:327.8% 327.8%,363% 363%,249.1% 249.1%,238.7% 238.7%}
+  85.7%{background-position:18.7% 37.9%,81.3% 62.1%,74.9% 68.4%,25.1% 31.6%;background-size:237.6% 237.6%,274.8% 274.8%,349.1% 349.1%,295.7% 295.7%}
+  100%{background-position:50% 56.8%,50% 43.2%,90% 70.9%,10% 29.1%;background-size:300% 300%,248.2% 248.2%,329.1% 329.1%,363.2% 363.2%}
+}
+@keyframes mv5{
+  0%{background-position:50% 78.8%,50% 21.2%,96% 80.6%,4% 19.4%;background-size:288% 288%,212% 212%,330.7% 330.7%,380.8% 380.8%}
+  14.3%{background-position:70% 73.5%,30% 26.5%,8.6% 15.2%,91.4% 84.8%;background-size:328.8% 328.8%,380.5% 380.5%,213.2% 213.2%,198% 198%}
+  28.6%{background-position:14% 10.8%,86% 89.2%,78.7% 34.9%,21.3% 65.1%;background-size:214.5% 214.5%,197.4% 197.4%,380.1% 380.1%,357.4% 357.4%}
+  42.9%{background-position:94.8% 44%,5.2% 56%,39.8% 91.6%,60.2% 8.4%;background-size:379.6% 379.6%,358.8% 358.8%,196.8% 196.8%,253% 253%}
+  57.1%{background-position:5.2% 91.9%,94.8% 8.1%,39.8% 46.6%,60.2% 53.4%;background-size:196.4% 196.4%,251.1% 251.1%,360.2% 360.2%,281.7% 281.7%}
+  71.4%{background-position:86% 37.4%,14% 62.6%,78.7% 9.9%,21.3% 90.1%;background-size:361.5% 361.5%,283.8% 283.8%,249.1% 249.1%,334.4% 334.4%}
+  85.7%{background-position:30% 13.8%,70% 86.2%,8.6% 71.2%,91.4% 28.8%;background-size:247.2% 247.2%,332.5% 332.5%,285.9% 285.9%,210.7% 210.7%}
+  100%{background-position:50% 78.8%,50% 21.2%,96% 80.6%,4% 19.4%;background-size:288% 288%,212% 212%,330.7% 330.7%,380.8% 380.8%}
+}
+@keyframes mv6{
+  0%{background-position:50% 50%,50% 50%,94% 76%,6% 24%;background-size:296% 296%,237.8% 237.8%,328.7% 328.7%,367.1% 367.1%}
+  14.3%{background-position:92.9% 70.3%,7.1% 29.7%,40.2% 66.2%,59.8% 33.8%;background-size:366.2% 366.2%,350.2% 350.2%,226.2% 226.2%,269.2% 269.2%}
+  28.6%{background-position:30.9% 75.3%,69.1% 24.7%,10.4% 44.2%,89.6% 55.8%;background-size:264.8% 264.8%,330.1% 330.1%,294.4% 294.4%,236.8% 236.8%}
+  42.9%{background-position:15.6% 61.3%,84.4% 38.7%,77.4% 26.6%,22.6% 73.4%;background-size:239.7% 239.7%,226.6% 226.6%,366.5% 366.5%,349.1% 349.1%}
+  57.1%{background-position:84.4% 38.7%,15.6% 61.3%,77.4% 26.6%,22.6% 73.4%;background-size:352.3% 352.3%,292.8% 292.8%,266.2% 266.2%,331.5% 331.5%}
+  71.4%{background-position:69.1% 24.7%,30.9% 75.3%,10.4% 44.2%,89.6% 55.8%;background-size:327.2% 327.2%,366.8% 366.8%,238.7% 238.7%,227% 227%}
+  85.7%{background-position:7.1% 29.7%,92.9% 70.3%,40.2% 66.2%,59.8% 33.8%;background-size:225.8% 225.8%,267.7% 267.7%,351.3% 351.3%,291.2% 291.2%}
+  100%{background-position:50% 50%,50% 50%,94% 76%,6% 24%;background-size:296% 296%,237.8% 237.8%,328.7% 328.7%,367.1% 367.1%}
+}
+@keyframes mv7{
+  0%{background-position:50% 88%,50% 12%,90% 50%,10% 50%;background-size:292% 292%,222.4% 222.4%,331% 331%,376.9% 376.9%}
+  14.3%{background-position:89% 15.8%,11% 84.2%,41.1% 33.5%,58.9% 66.5%;background-size:375.8% 375.8%,356.8% 356.8%,208.6% 208.6%,260% 260%}
+  28.6%{background-position:32.6% 73.7%,67.4% 26.3%,14% 79.7%,86% 20.3%;background-size:254.7% 254.7%,332.8% 332.8%,290.1% 290.1%,221.3% 221.3%}
+  42.9%{background-position:18.7% 41.5%,81.3% 58.5%,74.9% 13%,25.1% 87%;background-size:224.8% 224.8%,209.1% 209.1%,376.3% 376.3%,355.5% 355.5%}
+  57.1%{background-position:81.3% 41.5%,18.7% 58.5%,74.9% 87%,25.1% 13%;background-size:359.2% 359.2%,288.1% 288.1%,256.4% 256.4%,334.4% 334.4%}
+  71.4%{background-position:67.4% 73.7%,32.6% 26.3%,14% 20.3%,86% 79.7%;background-size:329.3% 329.3%,376.6% 376.6%,223.6% 223.6%,209.6% 209.6%}
+  85.7%{background-position:11% 15.8%,89% 84.2%,41.1% 66.5%,58.9% 33.5%;background-size:208.2% 208.2%,258.2% 258.2%,358% 358%,286.2% 286.2%}
+  100%{background-position:50% 88%,50% 12%,90% 50%,10% 50%;background-size:292% 292%,222.4% 222.4%,331% 331%,376.9% 376.9%}
+}
+@keyframes mv8{
+  0%{background-position:50% 84%,50% 16%,90% 50%,10% 50%;background-size:302% 302%,251.8% 251.8%,330.1% 330.1%,363.2% 363.2%}
+  14.3%{background-position:81.3% 71.2%,18.7% 28.8%,74.9% 23.4%,25.1% 76.6%;background-size:350.5% 350.5%,299.2% 299.2%,276.4% 276.4%,332.6% 332.6%}
+  28.6%{background-position:89% 42.4%,11% 57.6%,41.1% 16.9%,58.9% 83.1%;background-size:362.4% 362.4%,348.7% 348.7%,241.9% 241.9%,278.9% 278.9%}
+  42.9%{background-position:67.4% 19.4%,32.6% 80.6%,14% 35.2%,86% 64.8%;background-size:328.9% 328.9%,363% 363%,252.7% 252.7%,242.6% 242.6%}
+  57.1%{background-position:32.6% 19.4%,67.4% 80.6%,14% 64.8%,86% 35.2%;background-size:275.1% 275.1%,331.4% 331.4%,300.6% 300.6%,251% 251%}
+  71.4%{background-position:11% 42.4%,89% 57.6%,41.1% 83.1%,58.9% 16.9%;background-size:241.6% 241.6%,277.6% 277.6%,349.6% 349.6%,297.8% 297.8%}
+  85.7%{background-position:18.7% 71.2%,81.3% 28.8%,74.9% 76.6%,25.1% 23.4%;background-size:253.5% 253.5%,242.2% 242.2%,362.7% 362.7%,347.8% 347.8%}
+  100%{background-position:50% 84%,50% 16%,90% 50%,10% 50%;background-size:302% 302%,251.8% 251.8%,330.1% 330.1%,363.2% 363.2%}
+}
+@keyframes mv9{
+  0%{background-position:50% 83.5%,50% 16.5%,89% 65.8%,11% 34.2%;background-size:288% 288%,208.7% 208.7%,332.5% 332.5%,384.8% 384.8%}
+  14.3%{background-position:66.9% 13%,33.1% 87%,14.9% 50.3%,85.1% 49.7%;background-size:330.5% 330.5%,384.4% 384.4%,210% 210%,194.1% 194.1%}
+  28.6%{background-position:19.5% 83.2%,80.5% 16.8%,74.3% 33.6%,25.7% 66.4%;background-size:211.4% 211.4%,193.5% 193.5%,384% 384%,360.3% 360.3%}
+  42.9%{background-position:88% 27.2%,12% 72.8%,41.3% 79.1%,58.7% 20.9%;background-size:383.5% 383.5%,361.8% 361.8%,193% 193%,251.5% 251.5%}
+  57.1%{background-position:12% 57.9%,88% 42.1%,41.3% 13.9%,58.7% 86.1%;background-size:192.5% 192.5%,249.5% 249.5%,363.2% 363.2%,281.4% 281.4%}
+  71.4%{background-position:80.5% 58.6%,19.5% 41.4%,74.3% 86%,25.7% 14%;background-size:364.6% 364.6%,283.6% 283.6%,247.5% 247.5%,336.4% 336.4%}
+  85.7%{background-position:33.1% 26.7%,66.9% 73.3%,14.9% 21.3%,85.1% 78.7%;background-size:245.5% 245.5%,334.4% 334.4%,285.8% 285.8%,207.4% 207.4%}
+  100%{background-position:50% 83.5%,50% 16.5%,89% 65.8%,11% 34.2%;background-size:288% 288%,208.7% 208.7%,332.5% 332.5%,384.8% 384.8%}
+}
+@keyframes mv10{
+  0%{background-position:50% 66.5%,50% 33.5%,92% 72.7%,8% 27.3%;background-size:306% 306%,259.1% 259.1%,332.3% 332.3%,363.3% 363.3%}
+  14.3%{background-position:82.8% 78%,17.2% 22%,76.2% 51.3%,23.8% 48.7%;background-size:351.3% 351.3%,303.4% 303.4%,282% 282%,334.6% 334.6%}
+  28.6%{background-position:90.9% 68.4%,9.1% 31.6%,40.7% 28.9%,59.3% 71.1%;background-size:362.5% 362.5%,349.7% 349.7%,249.8% 249.8%,284.4% 284.4%}
+  42.9%{background-position:68.2% 45%,31.8% 55%,12.2% 22.4%,87.8% 77.6%;background-size:331.2% 331.2%,363.1% 363.1%,259.9% 259.9%,250.5% 250.5%}
+  57.1%{background-position:31.8% 25.3%,68.2% 74.7%,12.2% 36.7%,87.8% 63.3%;background-size:280.8% 280.8%,333.5% 333.5%,304.7% 304.7%,258.3% 258.3%}
+  71.4%{background-position:9.1% 24.3%,90.9% 75.7%,40.7% 61%,59.3% 39%;background-size:249.5% 249.5%,283.2% 283.2%,350.5% 350.5%,302.1% 302.1%}
+  85.7%{background-position:17.2% 42.6%,82.8% 57.4%,76.2% 77%,23.8% 23%;background-size:260.7% 260.7%,250.1% 250.1%,362.8% 362.8%,348.8% 348.8%}
+  100%{background-position:50% 66.5%,50% 33.5%,92% 72.7%,8% 27.3%;background-size:306% 306%,259.1% 259.1%,332.3% 332.3%,363.3% 363.3%}
+}
+@keyframes mv11{
+  0%{background-position:50% 78.5%,50% 21.5%,94% 40.7%,6% 59.3%;background-size:298% 298%,238.1% 238.1%,331.6% 331.6%,371.1% 371.1%}
+  14.3%{background-position:84.4% 34.6%,15.6% 65.4%,77.4% 24.2%,22.6% 75.8%;background-size:370.1% 370.1%,353.7% 353.7%,226.2% 226.2%,270.5% 270.5%}
+  28.6%{background-position:92.9% 28.3%,7.1% 71.7%,40.2% 70.7%,59.8% 29.3%;background-size:265.9% 265.9%,333.1% 333.1%,296.3% 296.3%,237.2% 237.2%}
+  42.9%{background-position:69.1% 75%,30.9% 25%,10.4% 66.5%,89.6% 33.5%;background-size:240.1% 240.1%,226.7% 226.7%,370.5% 370.5%,352.6% 352.6%}
+  57.1%{background-position:30.9% 60.5%,69.1% 39.5%,10.4% 21.9%,89.6% 78.1%;background-size:355.9% 355.9%,294.7% 294.7%,267.4% 267.4%,334.5% 334.5%}
+  71.4%{background-position:7.1% 20.3%,92.9% 79.7%,40.2% 46%,59.8% 54%;background-size:330.1% 330.1%,370.8% 370.8%,239.1% 239.1%,227.1% 227.1%}
+  85.7%{background-position:15.6% 52.7%,84.4% 47.3%,77.4% 79.9%,22.6% 20.1%;background-size:225.9% 225.9%,268.9% 268.9%,354.8% 354.8%,293% 293%}
+  100%{background-position:50% 78.5%,50% 21.5%,94% 40.7%,6% 59.3%;background-size:298% 298%,238.1% 238.1%,331.6% 331.6%,371.1% 371.1%}
+}
+@keyframes mv12{
+  0%{background-position:50% 72%,50% 28%,96% 50%,4% 50%;background-size:300% 300%,243.4% 243.4%,331.8% 331.8%,369.1% 369.1%}
+  14.3%{background-position:86% 45.1%,14% 54.9%,78.7% 28.6%,21.3% 71.4%;background-size:368.2% 368.2%,352.7% 352.7%,232.1% 232.1%,273.9% 273.9%}
+  28.6%{background-position:94.8% 30.2%,5.2% 69.8%,39.8% 59.5%,60.2% 40.5%;background-size:269.6% 269.6%,333.2% 333.2%,298.4% 298.4%,242.5% 242.5%}
+  42.9%{background-position:70% 63.7%,30% 36.3%,8.6% 67.2%,91.4% 32.8%;background-size:245.3% 245.3%,232.5% 232.5%,368.6% 368.6%,351.7% 351.7%}
+  57.1%{background-position:30% 63.7%,70% 36.3%,8.6% 32.8%,91.4% 67.2%;background-size:354.7% 354.7%,296.9% 296.9%,271.1% 271.1%,334.5% 334.5%}
+  71.4%{background-position:5.2% 30.2%,94.8% 69.8%,39.8% 40.5%,60.2% 59.5%;background-size:330.4% 330.4%,368.9% 368.9%,244.3% 244.3%,233% 233%}
+  85.7%{background-position:14% 45.1%,86% 54.9%,78.7% 71.4%,21.3% 28.6%;background-size:231.8% 231.8%,272.5% 272.5%,353.7% 353.7%,295.3% 295.3%}
+  100%{background-position:50% 72%,50% 28%,96% 50%,4% 50%;background-size:300% 300%,243.4% 243.4%,331.8% 331.8%,369.1% 369.1%}
+}
+@keyframes mv13{
+  0%{background-position:50% 71.2%,50% 28.8%,92% 20.9%,8% 79.1%;background-size:298% 298%,233.3% 233.3%,334.3% 334.3%,377% 377%}
+  14.3%{background-position:90.9% 18.3%,9.1% 81.7%,40.7% 67.1%,59.3% 32.9%;background-size:376% 376%,358.2% 358.2%,220.4% 220.4%,268.2% 268.2%}
+  28.6%{background-position:31.8% 86%,68.2% 14%,12.2% 48.4%,87.8% 51.6%;background-size:263.3% 263.3%,335.9% 335.9%,296.2% 296.2%,232.2% 232.2%}
+  42.9%{background-position:17.2% 16.9%,82.8% 83.1%,76.2% 35.9%,23.8% 64.1%;background-size:235.5% 235.5%,220.9% 220.9%,376.4% 376.4%,357% 357%}
+  57.1%{background-position:82.8% 73.7%,17.2% 26.3%,76.2% 77.1%,23.8% 22.9%;background-size:360.5% 360.5%,294.4% 294.4%,264.9% 264.9%,337.5% 337.5%}
+  71.4%{background-position:68.2% 40.4%,31.8% 59.6%,12.2% 15.3%,87.8% 84.7%;background-size:332.7% 332.7%,376.7% 376.7%,234.4% 234.4%,221.4% 221.4%}
+  85.7%{background-position:9.1% 43.6%,90.9% 56.4%,40.7% 85.4%,59.3% 14.6%;background-size:220% 220%,266.6% 266.6%,359.4% 359.4%,292.6% 292.6%}
+  100%{background-position:50% 71.2%,50% 28.8%,92% 20.9%,8% 79.1%;background-size:298% 298%,233.3% 233.3%,334.3% 334.3%,377% 377%}
+}
+@keyframes mv14{
+  0%{background-position:50% 50%,50% 50%,94% 18%,6% 82%;background-size:298% 298%,234.9% 234.9%,333.4% 333.4%,375% 375%}
+  14.3%{background-position:84.4% 25%,15.6% 75%,77.4% 30%,22.6% 70%;background-size:374% 374%,356.7% 356.7%,222.4% 222.4%,269% 269%}
+  28.6%{background-position:92.9% 18.8%,7.1% 81.2%,40.2% 57.1%,59.8% 42.9%;background-size:264.2% 264.2%,335% 335%,296.2% 296.2%,233.9% 233.9%}
+  42.9%{background-position:69.1% 36.1%,30.9% 63.9%,10.4% 78.8%,89.6% 21.2%;background-size:237% 237%,222.8% 222.8%,374.4% 374.4%,355.6% 355.6%}
+  57.1%{background-position:30.9% 63.9%,69.1% 36.1%,10.4% 78.8%,89.6% 21.2%;background-size:359% 359%,294.5% 294.5%,265.7% 265.7%,336.5% 336.5%}
+  71.4%{background-position:7.1% 81.2%,92.9% 18.8%,40.2% 57.1%,59.8% 42.9%;background-size:331.8% 331.8%,374.7% 374.7%,235.9% 235.9%,223.3% 223.3%}
+  85.7%{background-position:15.6% 75%,84.4% 25%,77.4% 30%,22.6% 70%;background-size:222% 222%,267.3% 267.3%,357.9% 357.9%,292.8% 292.8%}
+  100%{background-position:50% 50%,50% 50%,94% 18%,6% 82%;background-size:298% 298%,234.9% 234.9%,333.4% 333.4%,375% 375%}
+}
+@keyframes mv15{
+  0%{background-position:50% 82.4%,50% 17.6%,76% 73.5%,24% 26.5%;background-size:304% 304%,250.6% 250.6%,334% 334%,369.2% 369.2%}
+  14.3%{background-position:70.3% 88.6%,29.7% 11.4%,66.2% 39.4%,33.8% 60.6%;background-size:355.6% 355.6%,301% 301%,276.7% 276.7%,336.6% 336.6%}
+  28.6%{background-position:75.3% 65.7%,24.7% 34.3%,44.2% 13.2%,55.8% 86.8%;background-size:368.3% 368.3%,353.7% 353.7%,240% 240%,279.4% 279.4%}
+  42.9%{background-position:61.3% 31%,38.7% 69%,26.6% 14.8%,73.4% 85.2%;background-size:332.6% 332.6%,368.9% 368.9%,251.5% 251.5%,240.8% 240.8%}
+  57.1%{background-position:38.7% 10.6%,61.3% 89.4%,26.6% 42.9%,73.4% 57.1%;background-size:275.4% 275.4%,335.3% 335.3%,302.5% 302.5%,249.7% 249.7%}
+  71.4%{background-position:24.7% 19.9%,75.3% 80.1%,44.2% 76.3%,55.8% 23.7%;background-size:239.7% 239.7%,278.1% 278.1%,354.7% 354.7%,299.6% 299.6%}
+  85.7%{background-position:29.7% 51.8%,70.3% 48.2%,66.2% 90%,33.8% 10%;background-size:252.4% 252.4%,240.4% 240.4%,368.7% 368.7%,352.7% 352.7%}
+  100%{background-position:50% 82.4%,50% 17.6%,76% 73.5%,24% 26.5%;background-size:304% 304%,250.6% 250.6%,334% 334%,369.2% 369.2%}
+}
+@keyframes mv16{
+  0%{background-position:50% 64.5%,50% 35.5%,88% 76.3%,12% 23.7%;background-size:298% 298%,236.5% 236.5%,332.5% 332.5%,373.1% 373.1%}
+  14.3%{background-position:79.7% 79.6%,20.3% 20.4%,73.7% 55.1%,26.3% 44.9%;background-size:372.1% 372.1%,355.2% 355.2%,224.3% 224.3%,269.7% 269.7%}
+  28.6%{background-position:87% 72.4%,13% 27.6%,41.5% 30.1%,58.5% 69.9%;background-size:265% 265%,334% 334%,296.3% 296.3%,235.5% 235.5%}
+  42.9%{background-position:66.5% 48.4%,33.5% 51.6%,15.8% 20%,84.2% 80%;background-size:238.6% 238.6%,224.7% 224.7%,372.5% 372.5%,354.1% 354.1%}
+  57.1%{background-position:33.5% 25.6%,66.5% 74.4%,15.8% 32.6%,84.2% 67.4%;background-size:357.4% 357.4%,294.6% 294.6%,266.6% 266.6%,335.5% 335.5%}
+  71.4%{background-position:13% 21.2%,87% 78.8%,41.5% 58.2%,58.5% 41.8%;background-size:331% 331%,372.8% 372.8%,237.5% 237.5%,225.2% 225.2%}
+  85.7%{background-position:20.3% 38.5%,79.7% 61.5%,73.7% 77.7%,26.3% 22.3%;background-size:223.9% 223.9%,268.1% 268.1%,356.3% 356.3%,292.9% 292.9%}
+  100%{background-position:50% 64.5%,50% 35.5%,88% 76.3%,12% 23.7%;background-size:298% 298%,236.5% 236.5%,332.5% 332.5%,373.1% 373.1%}
+}
+@keyframes mv17{
+  0%{background-position:50% 82.3%,50% 17.7%,84% 60.5%,16% 39.5%;background-size:294% 294%,229.3% 229.3%,330.3% 330.3%,373% 373%}
+  14.3%{background-position:83.1% 78.4%,16.9% 21.6%,42.4% 31.3%,57.6% 68.7%;background-size:328.7% 328.7%,372.7% 372.7%,230.4% 230.4%,217.4% 217.4%}
+  28.6%{background-position:35.2% 53%,64.8% 47%,19.4% 16.1%,80.6% 83.9%;background-size:231.5% 231.5%,216.9% 216.9%,372.4% 372.4%,353% 353%}
+  42.9%{background-position:23.4% 25.4%,76.6% 74.6%,71.2% 26.5%,28.8% 73.5%;background-size:372% 372%,354.2% 354.2%,216.4% 216.4%,264.2% 264.2%}
+  57.1%{background-position:76.6% 16.3%,23.4% 83.7%,71.2% 54.6%,28.8% 45.4%;background-size:216% 216%,262.6% 262.6%,355.4% 355.4%,288.6% 288.6%}
+  71.4%{background-position:64.8% 32.6%,35.2% 67.4%,19.4% 79.2%,80.6% 20.8%;background-size:356.5% 356.5%,290.4% 290.4%,260.9% 260.9%,333.5% 333.5%}
+  85.7%{background-position:16.9% 61.9%,83.1% 38.1%,42.4% 81.8%,57.6% 18.2%;background-size:259.3% 259.3%,331.9% 331.9%,292.2% 292.2%,228.2% 228.2%}
+  100%{background-position:50% 82.3%,50% 17.7%,84% 60.5%,16% 39.5%;background-size:294% 294%,229.3% 229.3%,330.3% 330.3%,373% 373%}
+}
+@keyframes mv18{
+  0%{background-position:50% 86%,50% 14%,86% 50%,14% 50%;background-size:298% 298%,239.8% 239.8%,330.7% 330.7%,369.1% 369.1%}
+  14.3%{background-position:78.1% 72.4%,21.9% 27.6%,72.4% 21.9%,27.6% 78.1%;background-size:329.2% 329.2%,368.8% 368.8%,240.7% 240.7%,229% 229%}
+  28.6%{background-position:85.1% 42%,14.9% 58%,42% 14.9%,58% 85.1%;background-size:241.7% 241.7%,228.6% 228.6%,368.5% 368.5%,351.1% 351.1%}
+  42.9%{background-position:65.6% 17.6%,34.4% 82.4%,17.6% 34.4%,82.4% 65.6%;background-size:368.2% 368.2%,352.2% 352.2%,228.2% 228.2%,271.2% 271.2%}
+  57.1%{background-position:34.4% 17.6%,65.6% 82.4%,17.6% 65.6%,82.4% 34.4%;background-size:227.8% 227.8%,269.7% 269.7%,353.3% 353.3%,293.2% 293.2%}
+  71.4%{background-position:14.9% 42%,85.1% 58%,42% 85.1%,58% 14.9%;background-size:354.3% 354.3%,294.8% 294.8%,268.2% 268.2%,333.5% 333.5%}
+  85.7%{background-position:21.9% 72.4%,78.1% 27.6%,72.4% 78.1%,27.6% 21.9%;background-size:266.8% 266.8%,332.1% 332.1%,296.4% 296.4%,238.8% 238.8%}
+  100%{background-position:50% 86%,50% 14%,86% 50%,14% 50%;background-size:298% 298%,239.8% 239.8%,330.7% 330.7%,369.1% 369.1%}
+}
+@keyframes mv19{
+  0%{background-position:50% 76.6%,50% 23.4%,90% 41.3%,10% 58.7%;background-size:302% 302%,247% 247%,332.9% 332.9%,369.2% 369.2%}
+  14.3%{background-position:81.3% 35.6%,18.7% 64.4%,74.9% 26%,25.1% 74%;background-size:368.3% 368.3%,353.2% 353.2%,236.1% 236.1%,276.7% 276.7%}
+  28.6%{background-position:89% 29.8%,11% 70.2%,41.1% 69.3%,58.9% 30.7%;background-size:272.5% 272.5%,334.2% 334.2%,300.5% 300.5%,246.1% 246.1%}
+  42.9%{background-position:67.4% 73.4%,32.6% 26.6%,14% 65.4%,86% 34.6%;background-size:248.8% 248.8%,236.5% 236.5%,368.6% 368.6%,352.2% 352.2%}
+  57.1%{background-position:32.6% 59.8%,67.4% 40.2%,14% 23.8%,86% 76.2%;background-size:355.2% 355.2%,298.9% 298.9%,273.9% 273.9%,335.6% 335.6%}
+  71.4%{background-position:11% 22.3%,89% 77.7%,41.1% 46.2%,58.9% 53.8%;background-size:331.5% 331.5%,368.9% 368.9%,247.9% 247.9%,236.9% 236.9%}
+  85.7%{background-position:18.7% 52.5%,81.3% 47.5%,74.9% 77.9%,25.1% 22.1%;background-size:235.7% 235.7%,275.3% 275.3%,354.2% 354.2%,297.4% 297.4%}
+  100%{background-position:50% 76.6%,50% 23.4%,90% 41.3%,10% 58.7%;background-size:302% 302%,247% 247%,332.9% 332.9%,369.2% 369.2%}
+}
+@keyframes mv20{
+  0%{background-position:50% 73.5%,50% 26.5%,80% 82.4%,20% 17.6%;background-size:302% 302%,250.2% 250.2%,331.1% 331.1%,365.2% 365.2%}
+  14.3%{background-position:73.5% 90%,26.5% 10%,68.7% 51.8%,31.3% 48.2%;background-size:352% 352%,299.1% 299.1%,275.5% 275.5%,333.6% 333.6%}
+  28.6%{background-position:79.2% 76.3%,20.8% 23.7%,43.3% 19.9%,56.7% 80.1%;background-size:364.4% 364.4%,350.2% 350.2%,239.9% 239.9%,278.2% 278.2%}
+  42.9%{background-position:63% 42.9%,37% 57.1%,23% 10.6%,77% 89.4%;background-size:329.8% 329.8%,365% 365%,251.1% 251.1%,240.7% 240.7%}
+  57.1%{background-position:37% 14.8%,63% 85.2%,23% 31%,77% 69%;background-size:274.2% 274.2%,332.3% 332.3%,300.6% 300.6%,249.4% 249.4%}
+  71.4%{background-position:20.8% 13.2%,79.2% 86.8%,43.3% 65.7%,56.7% 34.3%;background-size:239.6% 239.6%,276.8% 276.8%,351.1% 351.1%,297.7% 297.7%}
+  85.7%{background-position:26.5% 39.4%,73.5% 60.6%,68.7% 88.6%,31.3% 11.4%;background-size:252% 252%,240.3% 240.3%,364.7% 364.7%,349.2% 349.2%}
+  100%{background-position:50% 73.5%,50% 26.5%,80% 82.4%,20% 17.6%;background-size:302% 302%,250.2% 250.2%,331.1% 331.1%,365.2% 365.2%}
+}
+@keyframes mv21{
+  0%{background-position:50% 72.7%,50% 27.3%,90% 66.5%,10% 33.5%;background-size:296% 296%,232.9% 232.9%,331.4% 331.4%,373% 373%}
+  14.3%{background-position:89% 77%,11% 23%,41.1% 42.6%,58.9% 57.4%;background-size:329.8% 329.8%,372.7% 372.7%,233.9% 233.9%,221.3% 221.3%}
+  28.6%{background-position:32.6% 61%,67.4% 39%,14% 24.3%,86% 75.7%;background-size:235% 235%,220.8% 220.8%,372.4% 372.4%,353.6% 353.6%}
+  42.9%{background-position:18.7% 36.7%,81.3% 63.3%,74.9% 25.3%,25.1% 74.7%;background-size:372% 372%,354.7% 354.7%,220.4% 220.4%,267% 267%}
+  57.1%{background-position:81.3% 22.4%,18.7% 77.6%,74.9% 45%,25.1% 55%;background-size:220% 220%,265.3% 265.3%,355.9% 355.9%,290.8% 290.8%}
+  71.4%{background-position:67.4% 28.9%,32.6% 71.1%,14% 68.4%,86% 31.6%;background-size:357% 357%,292.5% 292.5%,263.7% 263.7%,334.5% 334.5%}
+  85.7%{background-position:11% 51.3%,89% 48.7%,41.1% 78%,58.9% 22%;background-size:262.2% 262.2%,333% 333%,294.2% 294.2%,231.9% 231.9%}
+  100%{background-position:50% 72.7%,50% 27.3%,90% 66.5%,10% 33.5%;background-size:296% 296%,232.9% 232.9%,331.4% 331.4%,373% 373%}
+}
+@keyframes mv22{
+  0%{background-position:50% 70.5%,50% 29.5%,92% 71.9%,8% 28.1%;background-size:300% 300%,249.8% 249.8%,328.1% 328.1%,361.2% 361.2%}
+  14.3%{background-position:82.8% 79.9%,17.2% 20.1%,76.2% 47.6%,23.8% 52.4%;background-size:360.4% 360.4%,346.7% 346.7%,239.9% 239.9%,276.9% 276.9%}
+  28.6%{background-position:90.9% 66.8%,9.1% 33.2%,40.7% 25.1%,59.3% 74.9%;background-size:273.1% 273.1%,329.4% 329.4%,298.6% 298.6%,249% 249%}
+  42.9%{background-position:68.2% 41%,31.8% 59%,12.2% 21.4%,87.8% 78.6%;background-size:251.5% 251.5%,240.2% 240.2%,360.7% 360.7%,345.8% 345.8%}
+  57.1%{background-position:31.8% 22%,68.2% 78%,12.2% 39.2%,87.8% 60.8%;background-size:348.5% 348.5%,297.2% 297.2%,274.4% 274.4%,330.6% 330.6%}
+  71.4%{background-position:9.1% 24.1%,90.9% 75.9%,40.7% 65.2%,59.3% 34.8%;background-size:326.9% 326.9%,361% 361%,250.7% 250.7%,240.6% 240.6%}
+  85.7%{background-position:17.2% 45.7%,82.8% 54.3%,76.2% 79.7%,23.8% 20.3%;background-size:239.6% 239.6%,275.6% 275.6%,347.6% 347.6%,295.8% 295.8%}
+  100%{background-position:50% 70.5%,50% 29.5%,92% 71.9%,8% 28.1%;background-size:300% 300%,249.8% 249.8%,328.1% 328.1%,361.2% 361.2%}
+}
+@keyframes velo{from{background-position:0% 50%}to{background-position:100% 50%}}
+/* Las tres variantes de recorrido del velo. Cual se usa lo decide la FAMILIA, en la
+   tabla VELO_FAM del JS, junto con el angulo del degradado. Es lo que hace que un doom
+   y un mathcore no barran igual aunque el mecanismo sea el mismo. */
+@keyframes veloV{from{background-position:50% 0%}to{background-position:50% 100%}}
+@keyframes veloR{from{background-position:0% 22%}to{background-position:100% 78%}}
+/* Telon: en vez de desplazarse, la ventana despejada se estrecha y se abre desde el centro. */
+@keyframes veloT{0%,100%{background-size:var(--vbg)}50%{background-size:var(--vbg2)}}
+/* (Aqui vivia 'satu', una respiracion de saturacion. RETIRADA a peticion de Ken el
+   31-ago: "hace como un destello que va y viene... no me deja apreciar lo demas".
+   Segunda vez que un efecto global sobre la textura tapa a los demas — ver 'brasa'.
+   LECCION: sobre la nebulosa, nada de filtros que afecten a la tarjeta entera.) */
+/* EL COLOR DE LA FAMILIA VISITA LA FICHA. Entra desde una esquina — la misma para toda
+   la familia — y se retira. Antes lo hacia apareciendo y desapareciendo (opacidad); ahora
+   ENTRA Y SALE MOVIENDOSE, con la opacidad fija. Ver la regla de arriba del archivo. */
+@keyframes visita{
+  0%  {background-position:6% 12%}
+  31% {background-position:72% 48%}
+  58% {background-position:40% 88%}
+  82% {background-position:88% 26%}
+  100%{background-position:6% 12%}
+}
+/* (Aqui vivia 'brasa', un brightness() que atenuaba y encendia la nebulosa. RETIRADA:
+   oscurecia media parte del ciclo y le robaba contraste al velo, que trabaja justo al
+   reves, revelando brillo. Su sustituta 'satu' cayo por lo mismo un rato despues.) */
+/* Las tarjetas fuera de pantalla no se pintan NI animan: el navegador se salta su
+   contenido entero. Es lo que hace que 1114 fichas con 3 animaciones cada una sigan
+   yendo fluidas, porque solo trabajan las 10-15 que estas viendo.
+   contain-intrinsic-size: auto = recuerda el alto real tras pintarla una vez, asi la
+   barra de scroll no da saltos. */
+article[data-name]{content-visibility:auto;contain-intrinsic-size:auto 165px}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+/* ============================================================
+   MANDOS DE LA ANIMACION - cambia solo estos numeros
+   ------------------------------------------------------------
+   Cada tarjeta lleva CINCO animaciones. La nebulosa del fondo NUNCA
+   se escala ni se mueve: por eso no se difumina y el color queda
+   intacto. Lo que se mueve es la SOMBRA que tiene encima y su BRILLO.
+
+   1. PULSO. Una capa de color que late. El RITMO lo pone la
+      FAMILIA, sacado de como suena el genero:
+        rSeco   golpe y caida        death, deathcore, thrash, nu metal
+        rMotor  pulso constante      metalcore, punk, synth, pop, power, melodic death
+        rSwing  largo-corto          funk/jazz, hip-hop
+        rPoli   tres golpes por vuelta, contra el ciclo largo de la deriva   prog/djent, prog rock
+        rRoto   entrecortado, cae donde no lo esperas   mathcore, avant-garde
+        rSuave  vaiven suelto        indie, musicales, alt metal, rock clasico
+        rLento  hinchada muy lenta   black/doom/sludge, art pop
+        rCresc  crescendo largo y estallido             post-rock
+   2. DERIVA DE COLOR. La ficha se desliza hacia su SEGUNDO color.
+      Las dos capas de color tienen los focos en esquinas opuestas,
+      asi que ademas del tono se mueve el centro de gravedad del
+      color. Va a 3,3 veces la duracion del pulso: como no es
+      multiplo entero, la combinacion de los dos nunca cae dos
+      veces igual, aunque cada uno por separado sea regular.
+   3. EL VELO SE DESPLAZA. El scrim es mas ancho que la tarjeta y se
+      desliza: se despejan zonas distintas de la nebulosa por turnos,
+      sin tocar la nebulosa. Va a 4,1 veces el pulso, con 'alternate'
+      (ida y vuelta, sin salto de retorno).
+      LA FORMA LA PONE LA FAMILIA, en la tabla VELO_FAM del JS:
+        eje 'v'  vertical descendente    black/doom, nu metal, power
+        eje 'h'  horizontal, con angulo propio por familia
+        eje 'r'  radial: la luz se abre desde un punto   funk/jazz, hip-hop
+        eje 't'  telon: se estrecha y se abre desde el centro  musicales, art pop
+        doble    dos velos superpuestos a distinta velocidad  prog/djent, prog rock
+      Y el patron de paradas: 'reg' regular · 'irr' irregular
+      (mathcore, avant, synth) · 'sim' simetrico (el telon).
+   4. FLUJO: LOS COLORES CAMBIAN DE SITIO. Dos capas, y cada una
+      lleva TRES FRANJAS ALARGADAS con su propio background-position.
+      Cuatro reglas que costaron varias iteraciones:
+      a) FORMAS ALARGADAS, no circulos. Un circulo con borde marcado
+         moviendose se lee como un FOCO DE ESCENARIO, no como agua.
+         Las franjas van muy estiradas (62%x11%, 13%x56%...) y con
+         mucho desvanecido (el color acaba al 20-26% del radio).
+      b) TRES COLORES POR CAPA, no dos: c1, c2 y la MEZCLA de ambos
+         (--pc3), repartidos entre las dos capas para que ninguna
+         zona sea de un solo tono.
+      c) RECORRIDOS CERRADOS y SIN 'alternate'. El 100% vuelve al 0%
+         pasando por cinco paradas irregulares, asi que la franja
+         deambula. Con 'alternate' iba y volvia por el mismo camino,
+         que es justo el "punto A - punto B" que Ken rechazo.
+      d) CADA CAPA GIRADA (--rotA/--rotB/--rotV), con el angulo
+         sacado de la FAMILIA. Por eso un doom y un funk no fluyen
+         en la misma direccion. Las capas van con inset:-32% para
+         que el giro no descubra las esquinas.
+      Ademas, las tres franjas de una capa tienen tiles de tamano
+      distinto: con la misma parada recorren distancias distintas,
+      asi que el grupo se deforma en vez de moverse rigido.
+      ⚠ LA NEBULOSA NO SE MUEVE. Se mueve el COLOR que va encima, y
+      con mix-blend-mode:color, que toma el TONO de la franja y la
+      LUMINOSIDAD de la nebulosa: la recolorea conservando su
+      relieve, en vez de sumarle luz. Con 'screen' era invisible,
+      porque la nebulosa ya esta hecha con esos mismos colores.
+   5. VISITA DE LA FAMILIA. El color de la familia (FAMILY_COLOR, el
+      mismo de la cabecera de seccion) entra por una esquina y se
+      retira. La ESQUINA es la misma para toda la familia, asi que la
+      identidad se ve tambien en por donde entra. Ciclo largo (5,7x)
+      y opacidad baja, para tintar sin ensuciar las fichas que ya
+      llevan dos colores de genero.
+   6. BORDE. El marco late al mismo compas que el pulso.
+
+   EL ANILLO de la portada sigue girando (4,5 veces mas lento que el
+   pulso, hacia un lado u otro segun la familia). En el tier 4 es
+   color plano y no gira, a proposito.
+
+   ⛔ LA PORTADA YA NO RESPIRA. Ken dijo el 31-ago que el latido no le
+   convencia. Se quito, no se atenuo. La maquinaria sigue entera (el
+   keyframe 'latido' y la tabla LATIDO): para devolverlo, en el JS
+   cambia  const latido = 'none';  por la linea comentada de al lado.
+
+   Los CINCO ciclos van a 1 / 2,4 / 3,3 / 4,1 / 5,7 veces el pulso.
+   Ninguno es multiplo entero de otro, asi que la combinacion no se
+   repite en la practica — sensacion de no-patron SIN aleatoriedad,
+   que es justo lo que Ken pidio (aleatorio = caro y feo).
+
+   REPARTO DE MANDOS: la FAMILIA pone la FORMA (ritmo, angulo y eje del
+   velo, curva de la saturacion, color y esquina de la visita) y el
+   TIER pone la INTENSIDAD. Nunca al reves, y nada por ficha.
+
+   La INTENSIDAD la pone el TIER, en las tablas del JS:
+     AMPLITUD { 1:.62, 2:.48, 3:.34, 4:.24 }   cuanto se nota el pulso
+     VISITA   { 1:.30, 2:.24, 3:.17, 4:.10 }   cuanto asoma el color de familia
+   El recorrido del FLUJO esta en los keyframes flujoA/flujoB, y el
+   SUELO del pulso (el .42 que impide el estrobo) en los ritmos rXxx.
+     ANCHOVELO{ 1:210, 2:190, 3:170, 4:150 }   cuanto recorre el velo (%)
+     LATIDO   { 1:.025, 2:.019, 3:.013, 4:.009 }  (inactiva, ver arriba)
+     LENTITUD { 1:.85, 2:1, 3:1.25, 4:1.5 }    multiplica la duracion
+   El TEMPO base de cada ritmo esta en la tabla TEMPO (segundos).
+
+   Todas las fichas de una misma familia+tier laten IGUAL: no hay
+   nada aleatorio por ficha, asi el navegador reusa las animaciones.
+   ============================================================ */
+input::placeholder,textarea::placeholder{color:#5b5f6e}
+</style>
+<script>
+window.__lt2=[];try{new PerformanceObserver(function(l){l.getEntries().forEach(function(e){window.__lt2.push([Math.round(e.startTime),Math.round(e.duration)])})}).observe({type:'longtask',buffered:true});}catch(e){}
+window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,0];p[k][0]++;p[k][1]+=ms;if(ms>p[k][2])p[k][2]=ms;};
+</script>
+</helmet>
+
+<div style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.035;background-image:{{grainBg}}"></div>
+
+<header style="position:relative;z-index:2;padding:42px 28px 26px;border-bottom:1px solid #23252f;background:linear-gradient(180deg, rgba(18,19,25,.6), transparent)">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:1px">CATÁLOGO<span style="color:#C6FF3A">_</span>SONORO</div>
+  <div style="color:#8b8f9e;font-family:'Space Mono',monospace;font-size:13px;margin-top:8px;max-width:620px">Tu lista de exploración musical, catalogada por género y conectada a lo que ya conoces. Marca lo que escuchas. <b style="color:#ECEEF2">Crece con cada tanda de recomendaciones.</b><br>Prioridad de escucha: <b style="color:#ECEEF2">① empieza aquí</b> (pioneros/esenciales para ti) · ② alta afinidad · ③ más adelante · ④ curiosidad. Cada tarjeta muestra su año, su categoría (<b style="color:#ECEEF2">cat 1</b> reinvención · <b style="color:#ECEEF2">cat 2</b> identidad · <b style="color:#ECEEF2">✦ comodín</b>) y de qué rama vino («vía»).</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+    <div style="background:#121319;border:1px solid #23252f;border-radius:12px;padding:10px 16px;min-width:96px"><div style="font-family:'Bebas Neue';font-size:30px;line-height:1;color:#C6FF3A">{{stTotal}}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e;text-transform:uppercase;letter-spacing:1px;margin-top:3px">Artistas</div></div>
+    <div style="background:#121319;border:1px solid #23252f;border-radius:12px;padding:10px 16px;min-width:96px"><div style="font-family:'Bebas Neue';font-size:30px;line-height:1;color:#10B981">{{stHeard}}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e;text-transform:uppercase;letter-spacing:1px;margin-top:3px">Escuchados</div></div>
+    <div style="background:#121319;border:1px solid #23252f;border-radius:12px;padding:10px 16px;min-width:96px"><div style="font-family:'Bebas Neue';font-size:30px;line-height:1;color:#FFB23B">{{stLeft}}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e;text-transform:uppercase;letter-spacing:1px;margin-top:3px">Por escuchar</div></div>
+    <div style="background:#121319;border:1px solid #23252f;border-radius:12px;padding:10px 16px;min-width:96px"><div style="font-family:'Bebas Neue';font-size:30px;line-height:1">{{stGen}}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e;text-transform:uppercase;letter-spacing:1px;margin-top:3px">Familias</div></div>
+  </div>
+  <div style="height:6px;background:#171922;border-radius:99px;overflow:hidden;margin-top:14px;border:1px solid #23252f"><i style="display:block;height:100%;width:{{progW}};background:linear-gradient(90deg,#10B981,#C6FF3A);transition:width .8s cubic-bezier(.2,.8,.2,1)"></i></div>
+  <!-- MARCA DE VERSION: sirve para saber de un vistazo si un deploy entro o si el
+       navegador esta sirviendo una copia vieja de cache. Subir BUILD en cada cambio. -->
+  <div style="font-family:'Space Mono',monospace;font-size:10px;color:#4a4d5c;margin-top:10px;letter-spacing:1px">build {{build}}</div>
+</header>
+
+<div style="position:sticky;top:0;z-index:5;background:rgba(10,10,12,.92);backdrop-filter:blur(12px);border-bottom:1px solid #23252f;padding:14px 28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+  <div style="flex:1;min-width:200px;position:relative">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.5"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+    <input type="text" placeholder="Buscar artista, género, descripción..." onInput="{{onQuery}}" style="width:100%;box-sizing:border-box;background:#121319;border:1px solid #23252f;color:#ECEEF2;padding:12px 14px 12px 40px;border-radius:11px;font-family:'Archivo';font-size:15px;outline:none">
+  </div>
+  <div style="display:flex;background:#121319;border:1px solid #23252f;border-radius:11px;overflow:hidden">
+    <sc-for list="{{statusSeg}}" as="b" hint-placeholder-count="3">
+      <button onClick="{{b.onClick}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{b.bg}};color:{{b.color}};font-weight:{{b.fw}}">{{b.label}}</button>
+    </sc-for>
+  </div>
+  <div style="display:flex;background:#121319;border:1px solid #23252f;border-radius:11px;overflow:hidden">
+    <button onClick="{{onFem}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{femBg}};color:{{femColor}};font-weight:{{femFw}}">♀ Voz femenina</button>
+  </div>
+  <div style="display:flex;background:#121319;border:1px solid #23252f;border-radius:11px;overflow:hidden">
+    <sc-for list="{{prioSeg}}" as="b" hint-placeholder-count="4">
+      <button onClick="{{b.onClick}}" title="{{b.title}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{b.bg}};color:{{b.color}};font-weight:{{b.fw}}">{{b.label}}</button>
+    </sc-for>
+  </div>
+  <button onClick="{{openNext}}" title="Sugerir la siguiente banda para escuchar (por prioridad y año)" style="background:#121319;border:1px solid #23252f;color:#8b8f9e;padding:11px 14px;border-radius:11px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;transition:.18s;display:inline-flex;align-items:center;gap:7px">▶ ¿Qué sigo?</button>
+  <button onClick="{{openBackup}}" style="background:#121319;border:1px solid #23252f;color:#8b8f9e;padding:11px 14px;border-radius:11px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;transition:.18s;display:inline-flex;align-items:center;gap:7px">⇅ Respaldo</button>
+</div>
+
+<div style="position:relative;z-index:2;padding:18px 28px 6px;display:flex;gap:9px;flex-wrap:wrap">
+  <sc-for list="{{chips}}" as="ch" hint-placeholder-count="8">
+    <button onClick="{{ch.onClick}}" style="background:#121319;border:1px solid {{ch.border}};color:{{ch.color}};padding:7px 13px;border-radius:99px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;display:inline-flex;align-items:center;gap:7px" style-hover="transform:translateY(-1px)"><span style="width:8px;height:8px;border-radius:99px;background:{{ch.dot}}"></span>{{ch.label}} <span style="opacity:.6;font-size:11px">{{ch.num}}</span></button>
+  </sc-for>
+</div>
+
+<main style="position:relative;z-index:2;padding:6px 28px 80px">
+  <sc-for list="{{families}}" as="fam" hint-placeholder-count="2">
+    <section data-screen-label="{{fam.name}}" style="position:relative;padding:2px 0 30px;margin-top:10px;background:{{fam.secBg}}">
+      <div style="position:relative;border-radius:16px;padding:20px 24px;margin-top:16px;overflow:hidden;border:1px solid {{fam.edge}};background:{{fam.bandBg}}">
+        <div style="position:relative;z-index:1">
+          <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:40px;letter-spacing:1px;line-height:1;margin:0;color:{{fam.color}};text-shadow:0 1px 10px rgba(0,0,0,.7)">{{fam.name}}</h2>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#a7abbb;letter-spacing:1.5px;margin-top:4px;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.8)">{{fam.meta}}</div>
+          <div style="height:4px;border-radius:99px;background:rgba(255,255,255,.12);margin-top:12px;overflow:hidden"><i style="display:block;height:100%;width:{{fam.pctW}};background:{{fam.color}};transition:width .6s cubic-bezier(.2,.8,.2,1)"></i></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:16px">
+        <sc-for list="{{fam.items}}" as="it" hint-placeholder-count="4">
+          <article data-name="{{it.name}}" onClick="{{it.onOpen}}" style="{{it.rootStyle}}" style-hover="transform:translateY(-3px)">
+            <!-- NEBULOSA: quieta y nitida. No se escala, no se filtra, no se toca. -->
+            <div data-tex="{{it.texKey}}" style="position:absolute;inset:0;pointer-events:none;background-size:cover;background-position:center"></div>
+            <!-- VISITA: el color de la familia entra por su esquina y se retira -->
+            <div style="position:absolute;inset:-68%;pointer-events:none;opacity:var(--vmax);mix-blend-mode:color;transform:rotate(var(--rotV));background:{{it.bgV}};background-repeat:no-repeat;animation:{{it.rio3}}"></div>
+            <!-- COLOR 1: dos manchas que fluyen cruzandose. OPACIDAD FIJA, no late.
+                 Las manchas son MAS PEQUENAS QUE LA TARJETA a proposito. OJO CON LA
+                 CUENTA: en radial-gradient(X% ...) la X es el RADIO, y va sobre el TILE,
+                 no sobre la tarjeta. Con tile al 200%, un 20% = radio 0,40 del ancho de
+                 la ficha, y el corte en 70% deja una mancha visible de ~0,55 de ancho.
+                 Antes puse 32% creyendo que era el diametro: salia una mancha mas ancha
+                 que la tarjeta, y una mancha que desborda la ficha se desliza SIN QUE
+                 CAMBIE NADA en pantalla. Por eso Ken no veia el flujo. Hace falta que el
+                 BORDE de la mancha entre y salga del encuadre. -->
+            <div style="position:absolute;inset:-68%;pointer-events:none;opacity:var(--o1);mix-blend-mode:color;transform:rotate(var(--rotA));background:{{it.bgA}};background-repeat:no-repeat;animation:{{it.rio1}}"></div>
+            <!-- COLOR 2: igual, pero fluyendo en direccion CONTRARIA. Al cruzarse, los dos
+                 colores se intercambian el sitio dentro de la tarjeta. -->
+            <div style="position:absolute;inset:-68%;pointer-events:none;opacity:var(--ov);mix-blend-mode:screen;transform:rotate(var(--rotB));background:{{it.bgB}};background-repeat:no-repeat;animation:{{it.rio2}}"></div>
+            <!-- BORDE VIVO: al mismo compas que el pulso -->
+            <div style="position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 1.5px var(--eg),inset 0 0 26px -6px var(--eg);opacity:.18;animation:{{it.borde}}"></div>
+            <!-- VELO: el scrim es mas ancho que la tarjeta y se desliza. background-size va
+                 DESPUES del atajo 'background', que si no lo resetearia a auto. -->
+            <div style="position:absolute;inset:0;pointer-events:none;background:var(--scrim);background-size:var(--vbg);background-repeat:no-repeat;animation:{{it.velo}}"></div>
+            <button onClick="{{it.onToggle}}" title="Marcar escuchado" style="position:absolute;z-index:2;top:11px;right:11px;width:26px;height:26px;border-radius:8px;border:1px solid var(--ckb);background:var(--ckbg);cursor:pointer;display:grid;place-items:center;transition:.15s;color:var(--ckc)" style-hover="border-color:#10B981;color:#10B981">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"></path></svg>
+            </button>
+            <div style="position:relative;z-index:1;display:flex;gap:15px;align-items:flex-start">
+              <div style="position:relative;width:120px;height:120px;border-radius:13px;overflow:hidden;flex:none;padding:2.5px;box-sizing:border-box;filter:var(--cf);animation:{{it.latido}}">
+                <div style="position:absolute;inset:-35%;background:var(--ring);animation:{{it.giro}}"></div>
+                <div data-cov="{{it.name}}" style="position:relative;width:100%;height:100%;border-radius:10px;overflow:hidden;background:#050507"></div>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--lvc);font-weight:700;text-shadow:0 0 3px rgba(0,0,0,1),0 0 7px rgba(0,0,0,.92),0 1px 2px rgba(0,0,0,1)">{{it.lv}}</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;line-height:1;margin-top:3px;text-decoration:var(--deco);text-shadow:var(--nsh)">{{it.name}}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:5px">
+                  <sc-for list="{{it.tags}}" as="tg" hint-placeholder-count="1"><span style="{{tg.style}}">{{tg.t}}</span></sc-for>
+                  <span style="font-family:'Space Mono',monospace;font-size:10px;color:#dadeeb;text-shadow:0 0 3px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,1)">{{it.yr}}</span>
+                </div>
+                <p style="font-size:12.5px;color:#f3f5fc;line-height:1.5;margin:9px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 0 3px rgba(0,0,0,1),0 0 7px rgba(0,0,0,.95),0 1px 2px rgba(0,0,0,1)">{{it.ds}}</p>
+                <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.6px;text-transform:uppercase">
+                  <sc-for list="{{it.metas}}" as="mt" hint-placeholder-count="2"><span style="{{mt.style}}">{{mt.t}}</span></sc-for>
+                </div>
+              </div>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+      <sc-if value="{{fam.more}}" hint-placeholder-val="{{false}}">
+        <button onClick="{{fam.onMore}}" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.03);border:1px dashed {{fam.edge}};color:{{fam.color}};font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;transition:.15s" style-hover="background:rgba(255,255,255,.07)">{{fam.moreLabel}}</button>
+      </sc-if>
+    </section>
+  </sc-for>
+  <sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+    <div style="text-align:center;padding:80px 20px;color:#8b8f9e;font-family:'Space Mono',monospace"><div style="font-family:'Bebas Neue';font-size:40px;color:#5b5f6e">∅</div><div>Nada coincide con ese filtro.</div></div>
+  </sc-if>
+</main>
+
+<sc-if value="{{detailOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{onDetailBg}}" data-modalbg="detail" style="position:fixed;inset:0;background:rgba(4,4,8,.85);backdrop-filter:blur(8px);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:auto">
+    <div style="max-width:660px;width:100%;border-radius:20px;overflow:hidden;position:relative;border:1px solid {{dt.edge}};background:#0b0b13">
+      <div data-tex="{{dt.texKey}}" style="position:absolute;inset:0 0 auto 0;height:260px;pointer-events:none;background-size:cover;background-position:center;-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.9),transparent);mask-image:linear-gradient(180deg,rgba(0,0,0,.9),transparent)"></div>
+      <span onClick="{{closeDetail}}" style="position:absolute;top:14px;right:18px;font-size:28px;color:#8b8f9e;cursor:pointer;line-height:1;z-index:3">×</span>
+      <div style="display:flex;gap:20px;padding:26px 26px 6px;align-items:flex-end;position:relative;z-index:1">
+        <div style="width:176px;height:176px;border-radius:15px;overflow:hidden;flex:none;padding:3px;box-sizing:border-box;background:{{dt.ring}}">
+          <div data-cov-d="{{dt.name}}" style="width:100%;height:100%;border-radius:11px;overflow:hidden;background:#050507"></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:{{dt.acc}};text-shadow:0 1px 6px rgba(0,0,0,.8)">{{dt.lv}}</div>
+          <h3 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:38px;line-height:.95;margin:5px 0 0;text-shadow:0 1px 10px rgba(0,0,0,.7)">{{dt.name}}</h3>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px">
+            <sc-for list="{{dt.tags}}" as="tg" hint-placeholder-count="1"><span style="font-family:'Space Mono',monospace;padding:1px 7px;border-radius:99px;font-size:9px;letter-spacing:.4px;text-transform:uppercase;border:1px solid {{tg.bc}};color:{{tg.c}};background:{{tg.bg}};font-weight:700">{{tg.t}}</span></sc-for>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e">{{dt.yr}}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;margin:12px 26px 0;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;position:relative;z-index:1">
+        <span style="padding:3px 10px;border-radius:99px;border:1px solid {{dt.acc}};color:{{dt.acc}}">{{dt.cat}}</span>
+        <span style="padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.15);color:#8b8f9e">{{dt.via}}</span>
+        <sc-if value="{{dt.fem}}" hint-placeholder-val="{{false}}"><span style="padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.15);color:#8b8f9e">♀ voz femenina</span></sc-if>
+        <sc-if value="{{dt.rev}}" hint-placeholder-val="{{false}}"><span style="padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.15);color:#8b8f9e">⚠ por confirmar</span></sc-if>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b8f9e;margin:22px 26px 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);position:relative;z-index:1">La banda</div>
+      <div style="font-size:14.5px;line-height:1.7;color:#d6d9e6;margin:14px 26px 0;position:relative;z-index:1">{{dt.desc}}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b8f9e;margin:22px 26px 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)">Portada · elige el artwork oficial</div>
+      <div style="display:flex;gap:10px;margin:8px 26px 0;flex-wrap:wrap">
+        <sc-if value="{{dtLoading}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#8b8f9e;margin:6px 0">buscando artwork oficial…</div></sc-if>
+        <sc-if value="{{dtNoArt}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#8b8f9e;margin:6px 0">Sin artwork oficial encontrado (se usa el arte generado).</div></sc-if>
+        <sc-for list="{{dtPicker}}" as="pk" hint-placeholder-count="0">
+          <div onClick="{{pk.onPick}}" style="width:72px;cursor:pointer;text-align:center">
+            <div style="width:72px;height:72px;border-radius:10px;overflow:hidden;border:2px solid {{pk.border}};background:#050507;box-sizing:border-box"><div data-pickart="{{pk.art}}" style="width:100%;height:100%;background-size:cover;background-position:center"></div></div>
+            <div style="font-size:8.5px;color:#8b8f9e;margin-top:3px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{pk.t}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b8f9e;margin:22px 26px 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)">Discografía</div>
+      <div style="margin:8px 26px 26px">
+        <sc-if value="{{dtDiscEmpty}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#8b8f9e;margin:6px 0">Sin discografía disponible (revisa tu conexión).</div></sc-if>
+        <sc-for list="{{dtAlbums}}" as="al" hint-placeholder-count="0">
+          <div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);display:flex;gap:14px">
+            <div data-alb="{{al.t}}" data-alb-art="{{al.art}}" style="width:60px;height:60px;border-radius:8px;overflow:hidden;flex:none;border:1px solid rgba(255,255,255,.1);background:#050507"></div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:18px;line-height:1.05">{{al.t}}</div>
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:{{dt.acc}};margin-top:2px">{{al.y}}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{nextOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{onNextBg}}" data-modalbg="next" style="position:fixed;inset:0;background:rgba(5,5,7,.78);backdrop-filter:blur(6px);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:#121319;border:1px solid #23252f;border-radius:16px;max-width:540px;width:100%;padding:24px">
+      <h3 style="font-family:'Bebas Neue';font-size:28px;letter-spacing:1px;margin:0 0 12px">▶ SIGUIENTE ESCUCHA</h3>
+      <p style="color:#8b8f9e;font-size:13px;line-height:1.6;margin:0 0 14px;font-family:'Space Mono',monospace">{{nextInfo}}</p>
+      <sc-if value="{{nx}}" hint-placeholder-val="{{false}}">
+        <div style="position:relative;border-radius:15px;padding:15px;overflow:hidden;border:1px solid {{nx.borderCol}};background:#0b0b11;box-shadow:{{nx.shadow}}">
+          <div data-tex="{{nx.texKey}}" style="position:absolute;inset:0;pointer-events:none;background-size:cover;background-position:center"></div>
+          <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,rgba(6,6,11,.34),rgba(6,6,11,.06) 45%,rgba(6,6,11,.26))"></div>
+          <div style="position:relative;z-index:1;display:flex;gap:15px;align-items:flex-start">
+            <div style="width:100px;height:100px;border-radius:13px;overflow:hidden;flex:none;padding:2.5px;box-sizing:border-box;background:{{nx.ring}}">
+              <div data-cov="{{nx.name}}" style="width:100%;height:100%;border-radius:10px;overflow:hidden;background:#050507"></div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:{{nx.lvColor}};font-weight:700">{{nx.lv}}</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;line-height:1;margin-top:3px;text-shadow:{{nx.nmShadow}}">{{nx.name}}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:5px">
+                <sc-for list="{{nx.tags}}" as="tg" hint-placeholder-count="1"><span style="font-family:'Space Mono',monospace;padding:1px 7px;border-radius:99px;font-size:9px;letter-spacing:.4px;text-transform:uppercase;border:1px solid {{tg.bc}};color:{{tg.c}};background:{{tg.bg}};font-weight:700">{{tg.t}}</span></sc-for>
+                <span style="font-family:'Space Mono',monospace;font-size:10px;color:#9599a8">{{nx.yr}}</span>
+              </div>
+              <p style="font-size:12.5px;color:#d0d3e0;line-height:1.5;margin:9px 0 0;text-shadow:0 1px 6px rgba(0,0,0,.75)">{{nx.ds}}</p>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+        <button onClick="{{nextMark}}" style="padding:10px 18px;border-radius:10px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;border:1px solid #23252f;background:#171922;color:#10B981">✓ Escuchado</button>
+        <button onClick="{{nextAnother}}" style="padding:10px 18px;border-radius:10px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;border:1px solid #23252f;background:#171922;color:#ECEEF2">Otra sugerencia</button>
+        <button onClick="{{closeNext}}" style="padding:10px 18px;border-radius:10px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;border:1px solid #C6FF3A;background:#C6FF3A;color:#0a0a0c;font-weight:700">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{backupOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{onBackupBg}}" data-modalbg="backup" style="position:fixed;inset:0;background:rgba(5,5,7,.78);backdrop-filter:blur(6px);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="background:#121319;border:1px solid #23252f;border-radius:16px;max-width:540px;width:100%;padding:24px">
+      <h3 style="font-family:'Bebas Neue';font-size:28px;letter-spacing:1px;margin:0 0 12px">RESPALDO DE PROGRESO</h3>
+      <p style="color:#8b8f9e;font-size:13px;line-height:1.6;margin:0 0 14px;font-family:'Space Mono',monospace">Tu progreso se guarda solo en este navegador. Para no perderlo si cambias de dispositivo o regeneramos el archivo, copia este texto y guárdalo. Para restaurar, pega un respaldo y pulsa Importar.</p>
+      <textarea onInput="{{onBackupInput}}" defaultValue="{{backupText}}" spellCheck="{{false}}" style="width:100%;box-sizing:border-box;height:150px;background:#0a0a0c;border:1px solid #23252f;border-radius:10px;color:#ECEEF2;padding:12px;font-family:'Space Mono',monospace;font-size:12px;resize:vertical;outline:none"></textarea>
+      <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+        <button onClick="{{onCopyBackup}}" style="padding:10px 18px;border-radius:10px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;border:1px solid #23252f;background:#171922;color:#ECEEF2">Copiar</button>
+        <button onClick="{{onImportBackup}}" style="padding:10px 18px;border-radius:10px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;border:1px solid #23252f;background:#171922;color:#ECEEF2">Importar</button>
+        <button onClick="{{closeBackup}}" style="padding:10px 18px;border-radius:10px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;border:1px solid #C6FF3A;background:#C6FF3A;color:#0a0a0c;font-weight:700">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{toastMsg}}" hint-placeholder-val="{{false}}">
+  <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10B981;color:#06231a;padding:12px 22px;border-radius:11px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;z-index:90">{{toastMsg}}</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tier1Drift&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Textura&quot;},&quot;texturaEnBandas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Textura&quot;}}">
+class Component extends DCLogic {
+  state = {
+    showN: {}, // per-family shown-card override (default 8, expands por lotes)
+    mode: null, // texture mode: 'neb' | 'cum' | 'silk' (null → prop default)
+    fStatus: 'all', fem: false, fPrio: {}, query: '', chip: null,
+    heard: null, // null until loaded
+    data: null,
+    detail: null, dtRel: null,
+    nextOpen: false, nextIdx: 0,
+    backupOpen: false, toastMsg: '', texEpoch: 0
+  };
+
+  // ================= lifecycle =================
+  componentDidMount() {
+    window.__cat = this;
+    try { window.__lt = []; const po = new PerformanceObserver(l => { l.getEntries().forEach(e => window.__lt.push(Math.round(e.duration))); }); po.observe({ entryTypes: ['longtask'] }); } catch (e) {}
+    this._texCache = {}; this._relCache = {}; this._paintQ = []; this._painting = false;
+    this._io = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) { this._io.unobserve(e.target); this.queuePaint(e.target); } });
+    }, { rootMargin: '250px' });
+    this._covIO = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) { this._covIO.unobserve(e.target); this.lazyCover(e.target); } });
+    }, { rootMargin: '300px' });
+    // purga única: descarta discografías cacheadas por la versión anterior (sin la fuente Deezer)
+    try { if (localStorage.getItem('cachev2') !== '4') { const del = [];
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^rel:/.test(k)) del.push(k); }
+      del.forEach(k => localStorage.removeItem(k)); localStorage.setItem('cachev2', '4'); } } catch (e) {}
+    // purga v5: reintenta SOLO los lookups que fallaron ('0') — ahora hay match
+    // tolerante a "The " y búsqueda directa por álbum (musicales tipo Hadestown)
+    try { if (localStorage.getItem('cachev3') !== '5') { const del = [];
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i);
+        if (/^(aid|mba|dza):/.test(k) && localStorage.getItem(k) === '0') del.push(k); }
+      del.forEach(k => localStorage.removeItem(k)); localStorage.setItem('cachev3', '5'); } } catch (e) {}
+    this.loadHeard();
+    this._covQ = [];
+    const m = window.CATALOG || {};
+    this._deep = m.DEEP || {};
+    this.setState({ data: m.ALL || [] }, () => { setTimeout(() => this.trickle(0), 6000); });
+    if (!m.ALL) console.error('data load: window.CATALOG no está — ¿cargó catalog-data.js?');
+    this.sweep();
+  }
+  componentDidUpdate() { this.sweep(); }
+  expandFam(f, total) {
+    const cur = this.state.showN[f] != null ? this.state.showN[f] : 8;
+    const next = Math.min(total, cur + 60);
+    const sn = { ...this.state.showN }; sn[f] = next;
+    this.setState({ showN: sn }, () => { if (next < total) setTimeout(() => this.expandFam(f, total), 130); });
+  }
+
+  // ================= heard persistence =================
+  loadHeard() {
+    const KEY = 'ken_music_heard_v1';
+    let h = null;
+    try { const r = localStorage.getItem(KEY); if (r) h = JSON.parse(r); } catch (e) {}
+    if (!h) {
+      h = {}; // first run: preload seed after data arrives
+      this._needSeed = true;
+    }
+    this.setState({ heard: h });
+  }
+  saveHeard(h) { try { localStorage.setItem('ken_music_heard_v1', JSON.stringify(h)); } catch (e) {} }
+
+  // ================= color system (ported) =================
+  CMAP = [
+    [/progressive death|prog death/,'#7A5CFF'],[/technical death|tech death/,'#FF7A00'],[/melodic death/,'#B6E000'],
+    [/brutal death|slam/,'#B81818'],[/blackened death/,'#8A5A2A'],[/deathcore/,'#FF2E6A'],[/dissonant/,'#5C7080'],
+    [/death|grind/,'#C41E24'],
+    [/symphonic black/,'#B24BFF'],[/atmospheric black|avant.*black|experimental black/,'#5AC8FF'],[/black/,'#9FC4E8'],
+    [/doom/,'#6E3BD6'],[/sludge/,'#A0642A'],
+    [/prog(ressive)? rock/,'#3BFFC8'],[/djent/,'#1E7BFF'],[/prog/,'#2ED0FF'],
+    [/mathcore/,'#FF4FD8'],[/math/,'#00E0A8'],
+    [/power/,'#FFCE1E'],[/symphonic/,'#C24BFF'],
+    [/thrash/,'#FF8A1E'],[/groove/,'#E0A020'],[/heavy|nwobhm/,'#FF6A2E'],
+    [/metalcore/,'#FF3B77'],[/post-hardcore/,'#FF6BA8'],[/hardcore/,'#E01E4B'],
+    [/nu metal/,'#8A5CFF'],[/industrial/,'#6E7C8C'],
+    [/grunge/,'#5A8AD6'],[/stoner/,'#C87A2A'],[/alt metal|alt rock/,'#6EA8FF'],
+    [/avant|experimental/,'#9EFF3A'],[/jazz/,'#FFC21E'],[/fusion/,'#FFB000'],[/funk/,'#FF9E2E'],
+    [/darksynth/,'#D63BFF'],[/synth/,'#FF5CD6'],[/electronic|dance/,'#2ED0C0'],
+    [/blackgaze|shoegaze/,'#B0A0FF'],[/dream/,'#8FB0FF'],[/psych/,'#FF8A4B'],[/garage/,'#FFC84B'],[/jangle/,'#7AE0C0'],[/indie/,'#2EE0A0'],
+    [/k-pop|k-rock/,'#FF7AC8'],[/hip-hop|rap/,'#FFB020'],[/folk/,'#7ACB2A'],
+    [/post-rock/,'#5C8AFF'],[/post-metal|post /,'#6E5AD6'],
+    [/musical/,'#FFD24B'],[/cabaret|theatrical/,'#FF8AD6'],[/glam/,'#F06BFF'],
+    [/baroque|chamber/,'#E0A860'],[/art pop|art rock/,'#FF6BC8'],[/gothic/,'#8A5CD6'],
+    [/blues/,'#5CA8FF'],[/soul|r&b/,'#FF7AB0'],
+    // fix: estos nunca estuvieron en el mapa y dejaban tarjetas en gris
+    [/neoclassical/,'#D6B04B'],[/instrumental|guitar/,'#4BD6C0'],[/noise/,'#8C8CFF'],
+    [/trip.?hop/,'#7A5AD6'],[/ethereal|ambient/,'#A8D8FF'],[/zeuhl|canterbury/,'#C86ED6'],
+    [/punk/,'#FF7A5C'],
+    [/pop/,'#FF5CB0'],[/rock/,'#7AA8FF']
+  ];
+  FAMILY_RULES = [
+    ["Musicales / Teatro", g => /musical/i.test(g)],
+    ["Hip-Hop / R&B", g => /hip-hop|hip hop/i.test(g)],
+    ["Melodic Death", g => /melodic death/i.test(g)],
+    ["Deathcore", g => /deathcore/i.test(g)],
+    ["Death / Tech Death", g => /death|grind/i.test(g)],
+    ["Mathcore / Caótico", g => /mathcore|dissonant|^math|disso/i.test(g)],
+    ["Metalcore", g => /metalcore|post-hardcore|hardcore/i.test(g)],
+    ["Prog Rock clásico", g => /prog rock/i.test(g) && !/metal|djent/i.test(g)],
+    ["Prog / Djent", g => /prog|djent|tech metal|tech \/|math rock|math metal/i.test(g)],
+    ["Power / Symphonic / Folk", g => /power|symphonic|folk|pirate/i.test(g)],
+    ["Black / Doom / Sludge", g => /black|doom|sludge/i.test(g)],
+    ["Thrash / Groove / Heavy", g => /thrash|groove|heavy|nwobhm/i.test(g)],
+    ["Nu Metal / Industrial", g => /nu metal|industrial/i.test(g)],
+    ["Alt Metal / Grunge", g => /alt metal|grunge|stoner|occult/i.test(g)],
+    ["Avant-garde / Experimental", g => /avant|experimental/i.test(g)],
+    ["Funk / Jazz", g => /funk|jazz/i.test(g)],
+    ["Post-Rock / Instrumental", g => /post-rock|post-metal|post |instrumental|synthwave|darksynth/i.test(g)],
+    ["Punk / Emo", g => /punk|emo|hardcore/i.test(g)],
+    ["Art Pop / Teatral", g => /art pop|art rock|cabaret|theatrical|teatral|baroque|glam|singer/i.test(g)],
+    ["Indie / Psych / Garage", g => /indie|psych|garage|jangle|dream|bedroom|reggae|surf|new wave|alt rock/i.test(g)],
+    ["Synth / Electrónico", g => /synth|electronic|dance|dark wave/i.test(g)],
+    ["Pop / K-Pop", g => /k-pop|pop/i.test(g)],
+    ["Prog Rock clásico", g => /prog rock|rock opera/i.test(g)],
+    ["Rock clásico / Hard Rock", g => /hard rock|rock \(cl|blues|arena/i.test(g)],
+    ["Por confirmar", g => /\?\?\?/.test(g)]
+  ];
+  // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
+  // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
+  BUILD = "2026-09-02k";
+
+  FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
+
+  familyOf(g) { for (const [name, test] of this.FAMILY_RULES) { if (test(g)) return name; } return "Otros"; }
+  famColor(f) { return this.FAMILY_COLOR[f] || "#8a8ea6"; }
+  // VARIEDAD DE COLOR REAL DE CADA FAMILIA: cuantos tonos distintos producen sus fichas.
+  // Medido sobre el catalogo entero: Musicales 2, Melodic Death 3, frente a Prog 12 y
+  // Death 12. Es lo que explica que Ken vea unas familias monotonas y otras no — el
+  // problema no es la densidad del CMAP (60 de 66 generos tienen un vecino a menos de 6
+  // grados), sino que unas familias usan muchos subgeneros distintos y otras casi uno.
+  varFam(f, todas) {
+    if (!this._vf) {
+      const acc = {};
+      (todas || []).forEach(a => {
+        const k = this.familyOf(a.genre), c = this.colorsOf(a.genre).cols[0];
+        if (!c) return;
+        (acc[k] = acc[k] || new Set()).add(Math.floor(this.hex2hsl(c)[0] / 18));
+      });
+      this._vf = {}; for (const k in acc) this._vf[k] = acc[k].size;
+    }
+    return this._vf[f] || 8;
+  }
+  subColor(p) { p = p.toLowerCase(); for (const [re, c] of this.CMAP) if (re.test(p)) return c; return '#8a8ea6'; }
+  colorsOf(genre) { const parts = String(genre).split(/[\/,]/).map(s => s.trim()).filter(Boolean); const cols = [...new Set(parts.map(p => this.subColor(p)))]; return { cols: cols.slice(0, 2), parts }; }
+
+  hex2hsl(hex) { let n = parseInt(hex.slice(1), 16), r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let h = 0, s = 0, l = (mx + mn) / 2;
+    if (mx !== mn) { const dd = mx - mn; s = l > .5 ? dd / (2 - mx - mn) : dd / (mx + mn);
+      h = mx === r ? (g - b) / dd + (g < b ? 6 : 0) : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; h *= 60; }
+    return [h, s * 100, l * 100]; }
+  hsl2hex(h, s, l) { h = (h % 360 + 360) % 360; s /= 100; l /= 100; const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+    let r, g, b; if (h < 60) { r = c; g = x; b = 0 } else if (h < 120) { r = x; g = c; b = 0 } else if (h < 180) { r = 0; g = c; b = x } else if (h < 240) { r = 0; g = x; b = c } else if (h < 300) { r = x; g = 0; b = c } else { r = c; g = 0; b = x }
+    const t = v => ('0' + Math.round((v + m) * 255).toString(16)).slice(-2); return '#' + t(r) + t(g) + t(b); }
+  rgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; }
+  RGB(hex) { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  hueMid(a, b) { let d = ((b - a + 540) % 360) - 180; return (a + d / 2 + 360) % 360; }
+
+  // PALETA EXCLUSIVA POR GÉNERO Y TIER: todos los tonos derivan del hue del género
+  // (abanico máx ±38° dentro de la familia). Una banda single-género NUNCA toma
+  // colores de otro género. La épica del t1 sale del contraste luz/saturación:
+  // t1 NEÓN (vivo + pariente cálido del mismo clan + núcleo casi-blanco)
+  // t2 GEMA (joya profunda) · t3 BRUMA (pastel del clan) · t4 CENIZA (fantasma)
+  tierPair(hex, t) { const c = this.hex2hsl(hex), h = c[0], s = c[1], l = c[2];
+    if (t === 1) return [this.hsl2hex(h - 12, 100, Math.min(72, l + 12)), this.hsl2hex(h + 70, 100, 60)];
+    if (t === 2) return [this.hsl2hex(h + 16, Math.min(100, s * 1.25), Math.max(45, l)), this.hsl2hex(h - 52, 96, 50)];
+    if (t === 3) return [this.hsl2hex(h - 24, Math.max(46, s * .8), Math.min(76, l + 12)), this.hsl2hex(h - 62, Math.max(38, s * .65), Math.min(80, l + 18))];
+    return [this.hsl2hex(h + 6, Math.max(8, s * .18), Math.max(26, Math.min(58, l * .72 + 6))), this.hsl2hex(h + 6, 6, 40)]; }
+  tierCols(co, t) { const p = this.tierPair(co.cols[0], t);
+    if (co.cols.length > 1) return [p[0], this.tierPair(co.cols[1], t)[0]];
+    return p; }
+  tierMix(c1, c2, t) { const A = this.hex2hsl(c1), B = this.hex2hsl(c2);
+    // mezcla SIEMPRE dentro del clan (punto medio del abanico); en t1 es el
+    // "núcleo caliente": muy brillante, casi incandescente, pero del mismo género
+    const off = t === 1 ? 18 : 0;
+    const s = t === 1 ? 100 : t === 2 ? 96 : t === 3 ? 66 : 14, l = t === 1 ? 68 : t === 2 ? 56 : t === 3 ? 70 : 42;
+    return this.hsl2hex(this.hueMid(A[0], B[0]) + off, s, l); }
+
+  prioOf(a) { return a.p || ((a.pick || a.origin === 'rec') ? 2 : 3); }
+  catOf(a) { return a.c || 2; }
+  viaLabel(a) { if (a.via) return 'vía ' + a.via; if (a.origin === 'lista') return 'tu lista'; if (a.origin === 'heard') return 'ya escuchada'; return 'recomendada'; }
+
+  // ================= texture engine =================
+  H(s) { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return x >>> 0; }
+  rng(seed) { let s = this.H(seed); return () => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return s / 4294967296; }; }
+  makeNoise(seed) {
+    const r = this.rng(seed);
+    const perm = new Uint8Array(512); const p = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) p[i] = i;
+    for (let i = 255; i > 0; i--) { const j = (r() * (i + 1)) | 0; const t = p[i]; p[i] = p[j]; p[j] = t; }
+    for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+    const vals = new Float32Array(256); for (let i = 0; i < 256; i++) vals[i] = r();
+    const h = (x, y) => vals[perm[(x & 255) + perm[y & 255]] & 255];
+    function n(x, y) { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+      const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1);
+      const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+      return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; }
+    return function fbm(x, y, oct) { let s = 0, amp = 1, f = 1, tot = 0;
+      for (let o = 0; o < oct; o++) { s += n(x * f + o * 17.3, y * f + o * 31.7) * amp; tot += amp; amp *= .5; f *= 2.03; }
+      return s / tot; };
+  }
+  stars(ctx, seed, W, Hh) {
+    const r = this.rng(seed + 'st'); ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 55; i++) { ctx.globalAlpha = .2 + r() * .6; ctx.fillStyle = '#fff';
+      const x = r() * W, y = r() * Hh, rad = .4 + r() * 1.1; ctx.beginPath(); ctx.arc(x, y, rad, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 4; i++) { const x = r() * W, y = r() * Hh;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 6); g.addColorStop(0, 'rgba(255,255,255,.85)'); g.addColorStop(.3, 'rgba(255,255,255,.25)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+  tierParams(t) {
+    // amp = presencia · cut = cuánto negro queda · sc = escala (menor = nubarrones más grandes) · glow moderado para no quemar
+    return t === 1 ? { amp: 2.8, cut: .02, warp: 2.4, oct: 5, stars: true, glow: .95, sc: 1.2 }
+      : t === 2 ? { amp: 2.55, cut: .035, warp: 2.15, oct: 5, glow: .82, sc: 1.28 }
+      : t === 3 ? { amp: 1.35, cut: .24, warp: 1.25, oct: 4, glow: .2, sc: 1.75 }
+      : { amp: .5, cut: .44, warp: .68, oct: 3, glow: 0, sc: 2.3 };
+  }
+  // ---- NUBES ILUSTRADAS: cielo de color + cúmulos esponjosos con borde de luz ----
+  cloudify(hex, t) {
+    // devuelve [cuerpo, borde iluminado, sombra] para un color base según tier
+    const [h, s0] = this.hex2hsl(hex);
+    if (t === 1) return [this.hsl2hex(h, 88, 60), this.hsl2hex(h, 65, 88), this.hsl2hex(h, 90, 40)];
+    if (t === 2) return [this.hsl2hex(h, 78, 56), this.hsl2hex(h, 55, 84), this.hsl2hex(h, 82, 38)];
+    if (t === 3) return [this.hsl2hex(h, 38, 58), this.hsl2hex(h, 26, 82), this.hsl2hex(h, 40, 40)];
+    return [this.hsl2hex(h, 10, 44), this.hsl2hex(h, 8, 64), this.hsl2hex(h, 12, 30)];
+  }
+  puffCluster(ctx, r, x, y, w, h, cols, alpha) {
+    // cúmulo: fila de "puffs" solapados; cada puff = disco de luz arriba + disco cuerpo (queda media luna iluminada)
+    const [body, rim, shade] = cols;
+    const n = Math.max(3, Math.round(w / (h * .62)));
+    const puffs = [];
+    for (let i = 0; i < n; i++) {
+      const u = n === 1 ? .5 : i / (n - 1);
+      const prof = .55 + Math.sin(Math.PI * u) * .45; // más alto al centro
+      const rad = h * prof * (.42 + r() * .3);
+      puffs.push({ cx: x + u * w + (r() - .5) * h * .3, cy: y - rad * .35 + (r() - .5) * h * .18, rad });
+    }
+    ctx.globalAlpha = alpha;
+    // sombra de base (panza)
+    ctx.fillStyle = shade;
+    puffs.forEach(p => { ctx.beginPath(); ctx.arc(p.cx, p.cy + p.rad * .22, p.rad, 0, 7); ctx.fill(); });
+    // puff por puff: luz detrás, cuerpo delante desplazado abajo → media luna de luz en el tope
+    puffs.forEach(p => {
+      ctx.fillStyle = rim; ctx.beginPath(); ctx.arc(p.cx, p.cy - p.rad * .16, p.rad, 0, 7); ctx.fill();
+      ctx.fillStyle = body; ctx.beginPath(); ctx.arc(p.cx, p.cy + p.rad * .07, p.rad * .97, 0, 7); ctx.fill();
+    });
+    // mini-puffs frontales para romper la silueta
+    for (let i = 0; i < Math.round(n * .8); i++) {
+      const p = puffs[(r() * puffs.length) | 0];
+      const rad = p.rad * (.3 + r() * .3);
+      const cx = p.cx + (r() - .5) * p.rad * 1.4, cy = p.cy + p.rad * (.3 + r() * .35);
+      ctx.fillStyle = r() < .4 ? rim : body;
+      ctx.beginPath(); ctx.arc(cx, cy, rad, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  paintClouds(cv, seed, c1, c2, mix, t) {
+    const W = cv.width, Hh = cv.height, ctx = cv.getContext('2d');
+    const r = this.rng(seed + 'cl');
+    const A = this.hex2hsl(c1), B = this.hex2hsl(c2);
+    // cielo: degradado del tono de c2 (arriba) al de c1 (abajo) — más rico mientras más alto el tier
+    const sky = t === 1 ? [[B[0], 72, 24], [A[0], 78, 38]]
+      : t === 2 ? [[B[0], 60, 19], [A[0], 66, 30]]
+      : t === 3 ? [[B[0], 30, 14], [A[0], 34, 21]]
+      : [[B[0], 10, 9], [A[0], 12, 14]];
+    const g = ctx.createLinearGradient(0, 0, 0, Hh);
+    g.addColorStop(0, this.hsl2hex(sky[0][0], sky[0][1], sky[0][2]));
+    g.addColorStop(1, this.hsl2hex(sky[1][0], sky[1][1], sky[1][2]));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, Hh);
+    // resplandor bajo (t1/t2): el "sol" cósmico en el color mezcla
+    if (t <= 2) {
+      const gx = W * (.3 + r() * .4);
+      const gl = ctx.createRadialGradient(gx, Hh * 1.05, 0, gx, Hh * 1.05, Hh * (t === 1 ? 1.15 : .85));
+      gl.addColorStop(0, this.rgba(mix, t === 1 ? .85 : .5)); gl.addColorStop(1, this.rgba(mix, 0));
+      ctx.fillStyle = gl; ctx.fillRect(0, 0, W, Hh);
+    }
+    if (t === 1) this.stars(ctx, seed, W, Hh);
+    const CA = this.cloudify(c1, t), CB = this.cloudify(c2, t), CM = this.cloudify(mix, t);
+    const pick = () => { const v = r(); return v < .4 ? CA : v < .8 ? CB : CM; };
+    // capa lejana: puffs pequeños translúcidos
+    const far = t === 1 ? 5 : t === 2 ? 4 : 3;
+    for (let i = 0; i < far; i++)
+      this.puffCluster(ctx, r, r() * W * .9, Hh * (.2 + r() * .4), W * (.12 + r() * .15), Hh * .14, pick(), .5);
+    // flotadores medios
+    const mid = t === 1 ? 3 : t === 2 ? 3 : t === 3 ? 2 : 1;
+    for (let i = 0; i < mid; i++)
+      this.puffCluster(ctx, r, W * (i / mid) + r() * W * .2 - W * .08, Hh * (.3 + r() * .35), W * (.24 + r() * .2), Hh * (.2 + r() * .12), pick(), .94);
+    // masa inferior: nubes grandes ancladas al borde de abajo (como las referencias)
+    const bh = Hh * (t === 1 ? .34 : t === 2 ? .3 : t === 3 ? .24 : .18);
+    this.puffCluster(ctx, r, -W * .06, Hh * .98, W * .55, bh, pick(), 1);
+    this.puffCluster(ctx, r, W * .45, Hh * 1.0, W * .62, bh * .9, pick(), 1);
+    // esquina superior (t1/t2): nube colgante para envolver la tarjeta
+    if (t <= 2) this.puffCluster(ctx, r, W * (r() < .5 ? -.04 : .62), Hh * .04, W * .42, Hh * .18, pick(), .95);
+    if (t === 1) { // polvo de estrellas encima de las nubes
+      const rs = this.rng(seed + 'sd'); ctx.fillStyle = '#fff';
+      for (let i = 0; i < 18; i++) { ctx.globalAlpha = .25 + rs() * .5; ctx.beginPath(); ctx.arc(rs() * W, rs() * Hh, .5 + rs() * .8, 0, 7); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+  }
+  // A · NEBULOSA — domain-warped fbm, interlaced color field, luminous cores
+  paintNebula(cv, seed, c1, c2, mix, t) {
+    // Nubes con volumen: densidad fbm deformada + auto-sombreado (luz desde arriba-izq)
+    const W = cv.width, Hh = cv.height, ctx = cv.getContext('2d');
+    const P = this.tierParams(t);
+    // fondo por tier: cielo SIEMPRE tintado al hue del género (nunca negro plano)
+    const H1 = this.hex2hsl(c1)[0], Mh = this.hex2hsl(mix);
+    if (t === 1) {
+      // cielo ANCLADO al género, pero recorrido: género → cálido → mezcla → frío
+      const gsky = ctx.createLinearGradient(0, 0, W, Hh);
+      gsky.addColorStop(0, this.hsl2hex(H1, 78, 22));
+      gsky.addColorStop(.45, this.hsl2hex(H1 + 24, 70, 16));
+      gsky.addColorStop(.75, this.hsl2hex(Mh[0], 66, 19));
+      gsky.addColorStop(1, this.hsl2hex(H1 - 32, 72, 15));
+      ctx.fillStyle = gsky;
+    } else if (t === 2) {
+      const gsky = ctx.createLinearGradient(0, 0, W, Hh);
+      gsky.addColorStop(0, this.hsl2hex(H1, 56, 12));
+      gsky.addColorStop(.6, this.hsl2hex(H1 + 26, 48, 9));
+      gsky.addColorStop(1, this.hsl2hex(Mh[0] - 18, 46, 11));
+      ctx.fillStyle = gsky;
+    } else if (t === 3) {
+      const gsky = ctx.createLinearGradient(0, 0, W, Hh);
+      gsky.addColorStop(0, this.hsl2hex(H1, 30, 10));
+      gsky.addColorStop(1, this.hsl2hex(H1 - 26, 24, 7));
+      ctx.fillStyle = gsky;
+    } else ctx.fillStyle = this.hsl2hex(H1, 7, 6);
+    ctx.fillRect(0, 0, W, Hh);
+    const fbm = this.makeNoise(seed), fw = this.makeNoise(seed + 'w'), fm = this.makeNoise(seed + 'm');
+    const C1 = this.RGB(c1), C2 = this.RGB(c2), CM = this.RGB(mix);
+    // 4º tono "CHISPA": pariente del clan al lado opuesto del acento — más color entretejido
+    const CS = this.RGB(t === 1 ? this.hsl2hex(H1 - 46, 100, 58)
+      : t === 2 ? this.hsl2hex(H1 + 60, 96, 52)
+      : t === 3 ? this.hsl2hex(H1 + 42, 55, 72)
+      : this.hsl2hex(H1, 9, 50));
+    const img = ctx.getImageData(0, 0, W, Hh), D = img.data;
+    const sc = P.sc || 2.5, asp = .62;
+    const eps = .11, shadeK = t === 1 ? 5.4 : t === 2 ? 4.4 : 2.9; // fuerza del relieve
+    const dens = t === 1 ? 1 : t === 2 ? .95 : t === 3 ? .76 : .42; // cobertura de nube
+    for (let y = 0; y < Hh; y++) {
+      const ny = y / Hh * sc * asp;
+      for (let x = 0; x < W; x++) {
+        const nx = x / W * sc;
+        const wx = (fw(nx + 5.2, ny + 1.3, 2) - .5) * P.warp;
+        const wy = (fw(nx + 9.7, ny + 4.1, 2) - .5) * P.warp;
+        const px = nx + wx, py = ny + wy;
+        let d = fbm(px, py, P.oct);
+        // borde de nube más definido (smoothstep alrededor del corte)
+        let v = (d - P.cut) / (dens * .55);
+        v = v < 0 ? 0 : v > 1 ? 1 : v; v = v * v * (3 - 2 * v);
+        if (v <= 0.01) continue;
+        // sombreado: densidad hacia la luz (arriba-izquierda) — cara iluminada vs panza de la nube
+        const dl = fbm(px - eps * .7, py - eps, P.oct);
+        let sh = (d - dl) * shadeK; // >0 lado sombra, <0 lado luz
+        const lit = Math.max(0, -sh), dark = Math.max(0, sh);
+        let m = fm(px * 1.18 + 31, py * 1.18 + 17, 3);
+        m = Math.min(1, Math.max(0, (m - .3) * 2.75));
+        // CUATRO tonos del clan entretejidos: base → mezcla → acento → chispa
+        let A0, A1, k;
+        if (m < .34) { k = m / .34; A0 = C1; A1 = CM; }
+        else if (m < .68) { k = (m - .34) / .34; A0 = CM; A1 = C2; }
+        else { k = (m - .68) / .32; A0 = C2; A1 = CS; }
+        let R = A0[0] + (A1[0] - A0[0]) * k, G = A0[1] + (A1[1] - A0[1]) * k, B = A0[2] + (A1[2] - A0[2]) * k;
+        // cara iluminada tira a blanco (tope de nube), sombra oscurece hacia el fondo
+        const wl = Math.min(.75, lit * (0.4 + P.glow * .4));
+        R = R + (255 - R) * wl; G = G + (255 - G) * wl; B = B + (255 - B) * wl;
+        const dk = Math.min(.85, dark * .8);
+        R *= (1 - dk); G *= (1 - dk); B *= (1 - dk);
+        const a = Math.min(1, v * P.amp);
+        const i = (y * W + x) * 4;
+        D[i] = Math.round(D[i] * (1 - a) + R * a);
+        D[i + 1] = Math.round(D[i + 1] * (1 - a) + G * a);
+        D[i + 2] = Math.round(D[i + 2] * (1 - a) + B * a);
+        D[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    if (t === 1) {
+      // ① extra cósmico: banda de aurora cruzando + estrellas por encima de las nubes
+      const ga = ctx.createLinearGradient(0, 0, W, Hh * .8);
+      ga.addColorStop(0, 'rgba(0,0,0,0)');
+      ga.addColorStop(.45, this.rgba(this.hsl2hex(Mh[0] + 60, 100, 62), .5));
+      ga.addColorStop(.6, this.rgba(this.hsl2hex(Mh[0] + 100, 100, 66), .38));
+      ga.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = ga; ctx.fillRect(0, 0, W, Hh);
+    } else if (t === 2) {
+      // ② velo de aurora sutil: la gema también irradia
+      const ga = ctx.createLinearGradient(0, Hh, W, 0);
+      ga.addColorStop(0, 'rgba(0,0,0,0)');
+      ga.addColorStop(.5, this.rgba(this.hsl2hex(Mh[0] + 72, 96, 58), .22));
+      ga.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = ga; ctx.fillRect(0, 0, W, Hh);
+    }
+    if (P.stars) this.stars(ctx, seed, W, Hh);
+  }
+  // B · CÚMULOS — stamped puffs along a noisy seam, lit edges (painterly clouds)
+  paintCumulos(cv, seed, c1, c2, mix, t) {
+    const W = cv.width, Hh = cv.height, ctx = cv.getContext('2d');
+    const P = this.tierParams(t);
+    ctx.fillStyle = '#08080e'; ctx.fillRect(0, 0, W, Hh);
+    const r = this.rng(seed + 'cum'), fbm = this.makeNoise(seed + 'cs');
+    const n = Math.round((t === 1 ? 170 : t === 2 ? 130 : t === 3 ? 95 : 60));
+    ctx.globalCompositeOperation = 'lighter';
+    const cols = [c1, c2, mix];
+    for (let i = 0; i < n; i++) {
+      const u = r();
+      const seam = fbm(u * 2.2, .5, 3); // seam wanders vertically
+      const side = r() < .5 ? 0 : 1;
+      const lane = side === 0 ? seam - .06 - r() * .34 : seam + .06 + r() * .34;
+      const x = u * (W + 80) - 40;
+      const y = lane * Hh + (r() - .5) * Hh * .22;
+      const rad = (10 + r() * 34) * (t === 1 ? 1.15 : 1);
+      const ci = r() < .18 ? 2 : side;
+      const col = cols[ci];
+      const al = (t === 1 ? .16 : t === 2 ? .12 : t === 3 ? .09 : .055) * (0.7 + r() * .6);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+      g.addColorStop(0, this.rgba(col, al)); g.addColorStop(.6, this.rgba(col, al * .5)); g.addColorStop(1, this.rgba(col, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rad, 0, 7); ctx.fill();
+    }
+    // lit rims: small bright puffs near the seam
+    const rims = Math.round(n * .22) * (P.glow > 0 ? 1 : 0);
+    for (let i = 0; i < rims; i++) {
+      const u = r(); const seam = fbm(u * 2.2, .5, 3);
+      const x = u * W, y = seam * Hh + (r() - .5) * Hh * .1;
+      const rad = 4 + r() * 12;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+      const al = .22 * P.glow;
+      g.addColorStop(0, this.rgba(mix, al)); g.addColorStop(.5, this.rgba(mix, al * .4)); g.addColorStop(1, this.rgba(mix, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rad, 0, 7); ctx.fill();
+    }
+    // depth: dark puffs (multiply-ish) for volume
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < n * .35; i++) {
+      const x = r() * W, y = r() * Hh, rad = 16 + r() * 40;
+      const g = ctx.createRadialGradient(x, y + rad * .3, 0, x, y + rad * .3, rad);
+      g.addColorStop(0, 'rgba(6,6,12,.16)'); g.addColorStop(1, 'rgba(6,6,12,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y + rad * .3, rad, 0, 7); ctx.fill();
+    }
+    if (P.stars) this.stars(ctx, seed, W, Hh);
+  }
+  // C · AURORA — displaced diagonal gradient columns + wispy mask
+  paintAurora(cv, seed, c1, c2, mix, t) {
+    const W = cv.width, Hh = cv.height, ctx = cv.getContext('2d');
+    const P = this.tierParams(t);
+    const off = document.createElement('canvas'); off.width = W + 140; off.height = Hh + 100;
+    const o = off.getContext('2d');
+    const g = o.createLinearGradient(0, 0, off.width, off.height);
+    const stops = t <= 2 ? [[0, c1], [.3, mix], [.55, c2], [.8, mix], [1, c1]] : [[0, c1], [.5, mix], [1, c2]];
+    stops.forEach(s => g.addColorStop(s[0], s[1]));
+    o.fillStyle = g; o.fillRect(0, 0, off.width, off.height);
+    ctx.fillStyle = '#08080e'; ctx.fillRect(0, 0, W, Hh);
+    const fbm = this.makeNoise(seed + 'A');
+    const amp = (t === 1 ? 60 : t === 2 ? 44 : t === 3 ? 30 : 18);
+    ctx.globalAlpha = t === 1 ? .88 : t === 2 ? .8 : t === 3 ? .48 : .22;
+    for (let x = 0; x < W; x++) {
+      const u = x / W;
+      const sx = 70 + x + (fbm(u * 2.4, .3, 3) - .5) * 2 * amp;
+      const sy = 50 + (fbm(u * 2.4, 7.7, 3) - .5) * 2 * amp * .9;
+      const sy2 = (fbm(u * 4.1, 3.3, 2) - .5) * amp * .5;
+      ctx.drawImage(off, sx, sy - 50 + sy2, 1, Hh, x, 0, 1, Hh);
+    }
+    ctx.globalAlpha = 1;
+    // wispy alpha mask via coarse noise
+    const mk = document.createElement('canvas'); mk.width = 96; mk.height = 58;
+    const mc = mk.getContext('2d'); const mi = mc.createImageData(96, 58);
+    const fn = this.makeNoise(seed + 'msk');
+    for (let y = 0; y < 58; y++) for (let x = 0; x < 96; x++) {
+      const v = fn(x / 96 * 2.6, y / 58 * 1.6, 3);
+      const a = Math.min(1, Math.max(0, (v - .22) * 1.9));
+      const flo = t === 1 ? 150 : t === 2 ? 125 : 55;
+      const i = (y * 96 + x) * 4; mi.data[i] = 255; mi.data[i + 1] = 255; mi.data[i + 2] = 255; mi.data[i + 3] = Math.round(flo + a * (255 - flo));
+    }
+    mc.putImageData(mi, 0, 0);
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(mk, 0, 0, W, Hh);
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#08080e'; ctx.fillRect(0, 0, W, Hh);
+    ctx.globalCompositeOperation = 'source-over';
+    if (P.stars) this.stars(ctx, seed, W, Hh);
+  }
+  texFor(key) {
+    if (this._texCache[key]) return this._texCache[key];
+    const parts = key.split('§'); // ver, tier, c1, c2, mix, seed, wide
+    const [ver, tierS, c1, c2, mix, seed, wide] = parts;
+    const t = +tierS;
+    const cv = document.createElement('canvas');
+    cv.width = wide === '1' ? 560 : 300; cv.height = wide === '1' ? 150 : 180;
+    try { this.paintNebula(cv, seed, c1, c2, mix, t); } catch (e) { console.error('paint', e); }
+    let du = cv.toDataURL('image/webp', .8);
+    if (du.indexOf('image/webp') < 0) du = cv.toDataURL('image/png'); // fallback si el navegador no exporta webp
+    const url = 'url("' + du + '")';
+    this._texCache[key] = url;
+    return url;
+  }
+  queuePaint(el) {
+    this._paintQ = this._paintQ || [];
+    this._paintQ.push(el);
+    this.kickPaint();
+  }
+  kickPaint() {
+    if (this._paintTimer) return;
+    this._paintTimer = setTimeout(() => { this._paintTimer = null; this.stepPaint(); }, 16);
+  }
+  stepPaint() {
+    this._texCache = this._texCache || {};
+    const q = this._paintQ = this._paintQ || [];
+    const el = q.shift();
+    if (el) {
+      const key = el.getAttribute('data-tex');
+      if (key && el.isConnected && el._texDone !== key) {
+        try { el.style.backgroundImage = this.texFor(key); el._texDone = key; } catch (e) { console.error('paint step', e); }
+      }
+      if (el) el._inQ = false;
+    }
+    if (q.length) this.kickPaint();
+  }
+  kickCov() {
+    if (this._covT || !(this._covQ || []).length) return;
+    this._covT = setTimeout(() => { this._covT = null; this.stepCov(); }, 16);
+  }
+  stepCov() {
+    const q = this._covQ = this._covQ || [];
+    const t0 = performance.now();
+    while (q.length && performance.now() - t0 < 8) {
+      const el = q.shift();
+      if (!el || !el.isConnected) continue;
+      const name = el._covName; const a = this.byName(name); if (!a) continue;
+      if (el._covDone === name) continue; el._covDone = name;
+      const cols = this.colorsOf(a.genre).cols;
+      const pick = this.lsget('pick:' + name);
+      el.innerHTML = this.genCover(name, cols);
+      if (pick) { this.setImg(el, pick); continue; }
+      if (this._relCache[name] || this.lsget('rel2:' + name) != null) {
+        this.getReleases(a, list => { const art = this.bestArt(list); if (art && el._covName === name) this.setImg(el, art); });
+      } else this._covIO.observe(el);
+    }
+    if (q.length) this.kickCov();
+  }
+
+  // ================= covers (iTunes + MusicBrainz, ported) =================
+  lsget(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  lsset(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  genCover(seed, cols) {
+    let s = this.H(seed); const r = () => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return s / 4294967296; };
+    const pal = ['#0a0a12', cols[0], cols[1] || cols[0]]; const K = ['c', 'r', 't', 'g']; let sh = '';
+    for (let i = 0; i < 4; i++) { const k = K[(r() * 4) | 0], x = r() * 100, y = r() * 100, z = 22 + r() * 62, c = r() > .5 ? pal[1] : pal[2], o = (.4 + r() * .5).toFixed(2);
+      if (k === 'c') sh += '<circle cx="' + x + '" cy="' + y + '" r="' + z / 2 + '" fill="' + c + '" opacity="' + o + '"/>';
+      else if (k === 'g') sh += '<circle cx="' + x + '" cy="' + y + '" r="' + z / 2 + '" fill="none" stroke="' + c + '" stroke-width="' + (2 + r() * 8) + '" opacity="' + o + '"/>';
+      else if (k === 'r') sh += '<rect x="' + (x - z / 2) + '" y="' + (y - z / 2) + '" width="' + z + '" height="' + z + '" fill="' + c + '" opacity="' + o + '" transform="rotate(' + ((r() * 90) | 0) + ' ' + x + ' ' + y + ')"/>';
+      else sh += '<polygon points="' + x + ',' + (y - z / 2) + ' ' + (x - z / 2) + ',' + (y + z / 2) + ' ' + (x + z / 2) + ',' + (y + z / 2) + '" fill="' + c + '" opacity="' + o + '"/>'; }
+    return '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="' + pal[0] + '"/>' + sh + '</svg>';
+  }
+  jsonp(url, cb) {
+    if (this._netFails >= 6) return cb(null); // red bloqueada: no insistir
+    const c = 'j' + ((Math.random() * 1e9) | 0); let done = false;
+    window[c] = d => { if (done) return; done = true; this._netFails = 0; try { cb(d); } finally { delete window[c]; sc.remove(); } };
+    const sc = document.createElement('script'); sc.onerror = () => { if (done) return; done = true; this._netFails = (this._netFails || 0) + 1; try { cb(null); } finally { delete window[c]; } };
+    sc.src = url + (url.indexOf('?') < 0 ? '?' : '&') + 'callback=' + c; document.body.appendChild(sc); }
+  normT(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+  baseTitle(t) { return String(t || '').replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, ' ').replace(/\s+[-–]?\s*(single|ep)\s*$/i, '').replace(/\s+/g, ' ').trim(); }
+  NOT_STUDIO = /\b(live|en vivo|unplugged|sessions?|demo(s)?|single|ep|greatest hits|best of|anthology|compilation|collection|b\s?-?sides?|remaster(ed)?|reissue|deluxe|expanded|instrumental(s)?|remix(es)?|karaoke|tribute|covers?|split|box set|anniversary|edition|tour|soundtrack|commentary|acoustic)\b/i;
+  famGenreRe(a) { const f = this.familyOf(a.genre);
+    if (/Musicales/.test(f)) return /soundtrack|musical|show|vocal/i;
+    if (/Hip-Hop/.test(f)) return /hip.?hop|rap|r&b/i;
+    if (/Pop \/ K-Pop|Synth/.test(f)) return /pop|k-pop|electronic|dance/i;
+    if (/Indie|Grunge|Rock cl|Prog Rock|Art Pop|Punk|Post-Rock|Funk/.test(f)) return /rock|alternative|indie|pop|electronic|jazz|funk|soul|singer/i;
+    return /metal|hard rock|punk|rock/i; }
+  cleanName(n) { return String(n || '').replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, ' ').replace(/\s+/g, ' ').trim(); }
+  // igualdad tolerante: "Dillinger Escape Plan" ≡ "The Dillinger Escape Plan"
+  nameEq(cand, nm) { const c = this.normT(cand); return c === nm || c === 'the ' + nm || 'the ' + c === nm; }
+  resolveArtist(a, cb) { const key = 'aid:' + a.name, c = this.lsget(key);
+    if (c != null) return cb(c === '0' ? null : c);
+    this.jsonp('https://itunes.apple.com/search?entity=musicArtist&limit=20&term=' + encodeURIComponent(this.cleanName(a.name)), d => {
+      if (d == null) return cb(null);
+      let id = null; if (d.results && d.results.length) { const nm = this.normT(this.cleanName(a.name));
+        const exact = d.results.filter(r => this.nameEq(r.artistName, nm));
+        const re = this.famGenreRe(a);
+        const pick = exact.find(r => re.test(r.primaryGenreName || '')) || exact[0] || null;
+        if (pick && pick.artistId) id = String(pick.artistId); }
+      this.lsset(key, id || '0'); cb(id); }); }
+  itunesAlbums(id, cb) {
+    this.jsonp('https://itunes.apple.com/lookup?id=' + id + '&entity=album&limit=100', d => {
+      if (d == null) return cb(null);
+      const list = []; (d.results || []).forEach(r => { if (r.wrapperType === 'collection' && r.collectionName) {
+        const bt = this.baseTitle(r.collectionName);
+        if (!bt || this.NOT_STUDIO.test(bt)) return;
+        list.push({ t: bt, y: (r.releaseDate || '').slice(0, 4), art: (r.artworkUrl100 || '').replace('100x100bb', '600x600bb') }); } });
+      cb(list); }); }
+  mbFetch(url, cb) {
+    if (this._netFails >= 6) return cb(null);
+    this._mbLast = this._mbLast || 0; const at = Math.max(Date.now(), this._mbLast + 1100); this._mbLast = at;
+    setTimeout(() => { try { fetch(url).then(r => r.json()).then(cb).catch(() => { this._netFails = (this._netFails || 0) + 1; cb(null); }); } catch (e) { cb(null); } }, at - Date.now()); }
+  mbArtist(a, cb) { const key = 'mba:' + a.name, c = this.lsget(key);
+    if (c != null) return cb(c === '0' ? null : c);
+    this.mbFetch('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=8&query=' + encodeURIComponent('artist:"' + this.cleanName(a.name) + '"'), d => {
+      if (d == null) return cb(null);
+      let id = null; if (d.artists && d.artists.length) { const nm = this.normT(this.cleanName(a.name));
+        const ex = d.artists.filter(x => this.nameEq(x.name, nm));
+        const pick = ex.find(x => x.type === 'Group') || ex[0] || null;
+        if (pick) id = pick.id; }
+      this.lsset(key, id || '0'); cb(id); }); }
+  mbStudioAlbums(mbid, cb) {
+    this.mbFetch('https://musicbrainz.org/ws/2/release-group?fmt=json&limit=100&type=album%7Cep&artist=' + mbid, d => {
+      if (d == null) return cb(null);
+      const alb = [], eps = [];
+      (d['release-groups'] || []).forEach(rg => {
+        if ((rg['secondary-types'] || []).length) return;
+        if (this.NOT_STUDIO.test(this.baseTitle(rg.title))) return;
+        const item = { t: rg.title, y: (rg['first-release-date'] || '').slice(0, 4), caa: 'https://coverartarchive.org/release-group/' + rg.id + '/front-500' };
+        if (rg['primary-type'] === 'EP') eps.push(item); else alb.push(item);
+      });
+      // regla: álbumes oficiales; si la banda NO tiene álbumes (ej. Pinkly Smooth), sus EPs de estudio
+      cb(alb.length ? alb : eps); }); }
+  // Deezer: TERCERA fuente de artwork (rescata bandas sin iTunes y con CAA roto)
+  dzArtist(a, cb) { const key = 'dza:' + a.name, c = this.lsget(key);
+    if (c != null) return cb(c === '0' ? null : c);
+    this.jsonp('https://api.deezer.com/search/artist?output=jsonp&limit=12&q=' + encodeURIComponent(this.cleanName(a.name)), d => {
+      if (d == null) return cb(null);
+      let id = null; const nm = this.normT(this.cleanName(a.name));
+      const ex = ((d.data) || []).filter(r => this.nameEq(r.name, nm));
+      if (ex.length) id = String(ex[0].id);
+      this.lsset(key, id || '0'); cb(id); }); }
+  // ÚLTIMO recurso: búsqueda directa de álbumes por término en iTunes.
+  // Rescata musicales (Hadestown = cast recording, no hay "artista") y
+  // proyectos sin ficha de artista en ninguna de las 3 fuentes.
+  itAlbumSearch(a, cb) {
+    this.jsonp('https://itunes.apple.com/search?entity=album&limit=25&term=' + encodeURIComponent(this.cleanName(a.name)), d => {
+      if (d == null) return cb([]);
+      const nm = this.normT(this.cleanName(a.name)), out = [];
+      (d.results || []).forEach(r => { if (r.wrapperType !== 'collection' || !r.collectionName) return;
+        const bt = this.baseTitle(r.collectionName), nb = this.normT(bt);
+        // el título (sin paréntesis) debe SER o EMPEZAR por el nombre buscado
+        if (!this.nameEq(bt, nm) && nb.indexOf(nm + ' ') !== 0) return;
+        out.push({ t: bt, y: (r.releaseDate || '').slice(0, 4), art: (r.artworkUrl100 || '').replace('100x100bb', '600x600bb') }); });
+      cb(out); }); }
+  dzAlbums(a, cb) { this.dzArtist(a, id => { if (!id) return cb([]);
+    this.jsonp('https://api.deezer.com/artist/' + id + '/albums?output=jsonp&limit=100', d => {
+      if (d == null) return cb([]);
+      const alb = [], eps = []; ((d.data) || []).forEach(r => { const bt = this.baseTitle(r.title);
+        if (!bt || this.NOT_STUDIO.test(bt)) return;
+        const item = { t: bt, y: (r.release_date || '').slice(0, 4), art: r.cover_xl || r.cover_big || '' };
+        if (r.record_type === 'ep') eps.push(item); else if (r.record_type === 'album' || !r.record_type) alb.push(item); });
+      cb(alb.length ? alb : eps); }); }); }
+  finishRel(name, list, cb) { list.sort((x, y) => (x.y || '9999').localeCompare(y.y || '9999'));
+    const seen = {}, out = []; list.forEach(r => { const k = this.normT(r.t); if (r.t && !seen[k]) { seen[k] = 1; out.push(r); } });
+    // vacío = probable rate-limit → NO cachear el fallo; un sweep posterior reintenta
+    if (out.length) { this._relCache[name] = out; this.lsset('rel2:' + name, JSON.stringify(out)); }
+    cb(out); }
+  netReady(cb) { if (document.readyState === 'complete') cb(); else window.addEventListener('load', () => setTimeout(cb, 300), { once: true }); }
+  getReleases(a, cb) { const name = a.name;
+    if (this._relCache[name]) return cb(this._relCache[name]);
+    const ls = this.lsget('rel2:' + name); if (ls != null) { try { const arr = JSON.parse(ls); this._relCache[name] = arr; return cb(arr); } catch (e) {} }
+    if (document.readyState !== 'complete') { this.netReady(() => this.getReleases(a, cb)); return; }
+    this._cq = this._cq || []; this._cqA = this._cqA || 0;
+    this._cq.push(fin => {
+      // si la lista queda vacía o sin arte confiable (solo CAA), Deezer entra a rescatar/enriquecer
+      const done = list => {
+        list = list || [];
+        const hasReal = list.some(r => r.art && r.art.indexOf('coverartarchive') < 0);
+        if (list.length && hasReal) { this.finishRel(name, list, cb); fin(); return; }
+        this.dzAlbums(a, dz => {
+          dz = dz || [];
+          if (!list.length) {
+            if (dz.length) { this.finishRel(name, dz, cb); fin(); return; }
+            // nada en iTunes-artista, MB ni Deezer → búsqueda directa por álbum
+            this.itAlbumSearch(a, alb => { this.finishRel(name, alb, cb); fin(); });
+            return;
+          }
+          const idx = {}; dz.forEach(d => { const k = this.normT(d.t); if (!idx[k]) idx[k] = d; });
+          this.finishRel(name, list.map(r => {
+            if (r.art && r.art.indexOf('coverartarchive') < 0) return r;
+            const d = idx[this.normT(r.t)];
+            return (d && d.art) ? { t: r.t, y: r.y || d.y, art: d.art } : r;
+          }), cb); fin();
+        });
+      };
+      this.resolveArtist(a, id => {
+        const withIt = itList => {
+          this.mbArtist(a, mbid => {
+            if (!mbid) return done(itList);
+            this.mbStudioAlbums(mbid, mb => {
+              if (!mb || !mb.length) return done(itList);
+              const idx = {}; (itList || []).forEach(x => { const k = this.normT(x.t); if (!idx[k]) idx[k] = x; });
+              done(mb.map(m => { const it = idx[this.normT(m.t)];
+                return { t: m.t, y: m.y || (it ? it.y : ''), art: (it && it.art) ? it.art : m.caa }; }));
+            });
+          }); };
+        if (id) this.itunesAlbums(id, l => withIt(l || [])); else withIt([]);
+      }); });
+    this.cqRun(); }
+  cqRun() { const CQ = 2;
+    while (this._cqA < CQ && this._cq.length) { const fn = this._cq.shift(); this._cqA++; let done = false;
+      fn(() => { if (done) return; done = true; this._cqA--; this.cqRun(); }); } }
+  bestArt(list) { const it = list.find(r => r.art && r.art.indexOf('coverartarchive') < 0);
+    return (it || list.find(r => r.art) || {}).art; }
+  setImg(inner, url) { this.netReady(() => {
+    const img = document.createElement('img'); img.alt = ''; img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+    img.onload = () => { inner.innerHTML = ''; inner.appendChild(img); }; img.src = url; }); }
+  byName(name) { return (this.state.data || []).find(a => a.name === name); }
+  lazyCover(inner) {
+    const name = inner.getAttribute('data-cov') || inner.getAttribute('data-cov-d');
+    const a = this.byName(name); if (!a) return;
+    this.getReleases(a, list => {
+      const p = this.lsget('pick:' + name); if (p) return this.setImg(inner, p);
+      const art = this.bestArt(list); if (art) return this.setImg(inner, art);
+      // sin arte (probable rate-limit / breaker): reintenta cuando la red respire
+      inner._covTries = (inner._covTries || 0) + 1;
+      if (inner._covTries <= 3) setTimeout(() => { if (inner.isConnected) this.lazyCover(inner); }, 50000 * inner._covTries);
+    });
+  }
+  trickle(i) {
+    // breaker RECUPERABLE: iTunes rate-limitea (~20 req/min); si acumulamos
+    // fallos, pausamos 45s y reintentamos la MISMA banda en vez de morir
+    if (this._netFails >= 6) { setTimeout(() => { this._netFails = 0; this.trickle(i); }, 45000); return; }
+    const ALL = this.state.data; if (!ALL || i >= ALL.length) return;
+    const a = ALL[i];
+    if (!this._relCache[a.name] && this.lsget('rel2:' + a.name) == null) {
+      this.getReleases(a, list => {
+        const art = this.bestArt(list || []);
+        if (art && !this.lsget('pick:' + a.name)) {
+          document.querySelectorAll('[data-cov]').forEach(inner => {
+            if (inner.getAttribute('data-cov') === a.name && !inner.querySelector('img')) this.setImg(inner, art);
+          });
+        }
+        setTimeout(() => this.trickle(i + 1), 3000); // ~2 llamadas iTunes/banda → bajo el rate-limit (~20/min)
+      });
+    } else setTimeout(() => this.trickle(i + 1), 25);
+  }
+
+  // ================= imperative sweep after each render =================
+  sweep() {
+    // rAF cuando la página es visible; respaldo con setTimeout (rAF no corre en iframes ocultos)
+    if (this._sweepRaf) cancelAnimationFrame(this._sweepRaf);
+    if (this._sweepTO) clearTimeout(this._sweepTO);
+    const run = () => {
+      if (this._sweepDone) return; this._sweepDone = true;
+      const __t0 = performance.now();
+      try { this._sweepBody(); } finally { if (window.__pf) window.__pf('sweep', performance.now() - __t0); }
+    };
+    this._sweepDone = false;
+    this._sweepRaf = requestAnimationFrame(run);
+    this._sweepTO = setTimeout(run, 120);
+  }
+  _sweepBody() {
+    {
+      // textures — pinta todo en cola por rebanadas, las más cercanas al viewport primero
+      const pend = [];
+      document.querySelectorAll('[data-tex]').forEach(el => {
+        const key = el.getAttribute('data-tex');
+        if (!key || el._texDone === key) return;
+        if (this._texCache[key]) { el.style.backgroundImage = this._texCache[key]; el._texDone = key; }
+        else if (!el._inQ) { el.style.backgroundImage = 'none'; el._inQ = true; pend.push(el); }
+      });
+      if (pend.length) {
+        pend.sort((a, b) => Math.abs(a.getBoundingClientRect().top) - Math.abs(b.getBoundingClientRect().top));
+        pend.forEach(el => this.queuePaint(el));
+      }
+      // covers — queue, processed in small time slices (never all 700+ in one frame)
+      document.querySelectorAll('[data-cov],[data-cov-d]').forEach(el => {
+        const name = el.getAttribute('data-cov') || el.getAttribute('data-cov-d');
+        if (!name || el._covName === name) return;
+        el._covName = name;
+        this._covQ = this._covQ || [];
+        this._covQ.push(el);
+      });
+      this.kickCov();
+      // artwork picker thumbs (detail modal)
+      document.querySelectorAll('[data-pickart]').forEach(el => {
+        const art = el.getAttribute('data-pickart');
+        if (!art || art.indexOf('{{') >= 0 || el._pickArt === art) return;
+        el._pickArt = art; el.style.backgroundImage = 'url("' + art + '")';
+      });
+      // album thumbs in detail
+      document.querySelectorAll('[data-alb]').forEach(el => {
+        const t = el.getAttribute('data-alb'); const art = el.getAttribute('data-alb-art');
+        const sig = t + '|' + art;
+        if (el._albSig === sig) return; el._albSig = sig;
+        const a = this.state.detail; const cols = a ? this.colorsOf(a.genre).cols : ['#8a8ea6'];
+        el.innerHTML = this.genCover(t, cols);
+        if (art && art !== 'null' && art !== '') {
+          const img = document.createElement('img'); img.alt = ''; img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+          img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
+          img.src = art;
+        }
+      });
+    }
+  }
+
+  // ================= interactions =================
+  toggleHeard(name) {
+    const h = { ...(this.state.heard || {}) };
+    if (h[name]) delete h[name]; else h[name] = 1;
+    this.saveHeard(h); this.setState({ heard: h });
+  }
+  openDetail(a) { this.setState({ detail: a, dtRel: null });
+    this.getReleases(a, list => { if (this.state.detail && this.state.detail.name === a.name) this.setState({ dtRel: list }); }); }
+  toast(m) { this.setState({ toastMsg: m }); clearTimeout(this._toastT); this._toastT = setTimeout(() => this.setState({ toastMsg: '' }), 2200); }
+  nextCandidates() {
+    const { data, heard, chip, fem } = this.state; if (!data) return [];
+    return data.filter(a => !(heard || {})[a.name]
+      && (!chip || this.familyOf(a.genre) === chip)
+      && (!fem || a.female))
+      .sort((a, b) => this.prioOf(a) - this.prioOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
+  }
+
+  // ================= card view-model =================
+  cardVM(a, mode, drift) {
+    const heard = this.state.heard || {};
+    const isHeard = !!heard[a.name];
+    this._vmCache = this._vmCache || {};
+    const ck = 'v50|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0);
+    if (this._vmCache[ck]) return this._vmCache[ck];
+    const vm = this.buildVM(a, mode, drift, isHeard);
+    this._vmCache[ck] = vm;
+    return vm;
+  }
+  buildVM(a, mode, drift, isHeard) {
+    const p = this.prioOf(a), c = this.catOf(a);
+    const co = this.colorsOf(a.genre);
+    const tc = this.tierCols(co, p), c1 = tc[0], c2 = tc[1] || tc[0];
+    const mix = this.tierMix(c1, c2, p);
+    const ring = (p === 1) ? 'conic-gradient(from 130deg,' + c1 + ',' + mix + ',' + c2 + ',' + mix + ',' + c1 + ')'
+      : (p === 2) ? 'linear-gradient(130deg,' + c1 + ',' + mix + ',' + c2 + ')'
+      : (p === 3) ? 'linear-gradient(130deg,' + this.rgba(c1, .8) + ',' + this.rgba(c2, .7) + ')'
+      : this.rgba(c1, .5);
+    const borderCol = p === 1 ? this.rgba(c1, .85) : p === 2 ? this.rgba(c1, .45) : p === 3 ? this.rgba(c1, .28) : 'rgba(255,255,255,.09)';
+    const shadow = p === 1 ? ('0 0 60px -8px ' + this.rgba(c1, .65) + ',0 0 60px -10px ' + this.rgba(c2, .55) + ',inset 0 0 40px -18px ' + this.rgba(mix, .55))
+      : p === 2 ? ('0 0 34px -14px ' + this.rgba(c1, .6) + ',inset 0 0 30px -20px ' + this.rgba(c2, .4)) : 'none';
+    const CAT_LABEL = { 1: 'cat 1 · reinvención', 2: 'cat 2 · identidad', 3: '✦ comodín' };
+    const PRIO_LABEL = { 1: '① empieza aquí', 2: '② alta afinidad', 3: '③ más adelante', 4: '④ curiosidad' };
+    const RN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV' };
+    const lv = ((isHeard && p === 1) ? '① pilar de tu gusto' : PRIO_LABEL[p]) + ' · ' + RN[p];
+    const tagBase = "font-family:'Space Mono',monospace;padding:1px 7px;border-radius:99px;font-size:9px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;";
+    const tags = co.parts.map(pt => { const tcol = this.subColor(pt); // color BASE real del subgénero (sin transformar por tier)
+      const tlit = this.hsl2hex(this.hex2hsl(tcol)[0], 90, 70); // texto del tag aclarado para contraste
+      return { t: pt, c: tlit, bc: this.rgba(tcol, .95), bg: 'rgba(3,3,8,.97)',
+        style: tagBase + 'border:1px solid ' + this.rgba(tcol, .95) + ';color:' + tlit + ';background:rgba(3,3,8,.97);text-shadow:0 0 3px rgba(0,0,0,1)' }; });
+    const texKey = ['t13', p, c1, c2, mix, 'v' + (this.H(a.name) % 3), '0'].join('§');
+    const acc = p === 4 ? '#8b8f9e' : c1;
+    const metaBase = 'padding:2px 7px;border-radius:99px;background:rgba(3,3,8,.95);border:1px solid ';
+    const metas = [
+      { t: CAT_LABEL[c], style: metaBase + acc + ';color:' + acc },
+      { t: this.viaLabel(a), style: metaBase + 'rgba(255,255,255,.16);color:#9599a8' }
+    ];
+    if (a.female) metas.push({ t: '♀ fem', style: metaBase + 'rgba(182,107,255,.4);color:#B66BFF' });
+    if (a.origin_note === 'rev') metas.push({ t: '⚠ confirmar', style: metaBase + 'rgba(255,178,59,.4);color:#FFB23B' });
+    const nmShadow = (p === 1 ? '0 0 18px ' + this.rgba(c1, .5) + ',' : '') + '0 0 4px rgba(0,0,0,.98),0 0 10px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,1)';
+    // Cada tarjeta recibe su propio movimiento: direccion, amplitud, giro, duraciones
+    // y desfases salen de un generador con semilla en el nombre de la banda. Deterministas
+    // (la misma banda se mueve siempre igual) pero distintos entre fichas, asi que no hay
+    // patron global. El desfase negativo evita ademas que arranquen todas a la vez.
+    // ---- RITMO POR FAMILIA + INTENSIDAD POR TIER ----
+    // La familia decide COMO late (el caracter del ritmo, sacado del genero).
+    // El tier decide CUANTO late (amplitud y velocidad).
+    // Todas las fichas de una misma familia+tier comparten animacion: nada aleatorio, nada por ficha.
+    const fam = this.familyOf(a.genre || '');
+    const RITMOS = [['Melodic Death', 'rMotor'], ['Deathcore', 'rSeco'], ['Death', 'rSeco'],
+      ['Doom', 'rLento'], ['Post-Rock', 'rCresc'], ['Art Pop', 'rLento'], ['Thrash', 'rSeco'],
+      ['Nu Metal', 'rSeco'], ['Djent', 'rPoli'], ['Prog Rock', 'rPoli'], ['Mathcore', 'rRoto'],
+      ['Avant', 'rRoto'], ['Funk', 'rSwing'], ['Hip-Hop', 'rSwing'], ['Metalcore', 'rMotor'],
+      ['Punk', 'rMotor'], ['Synth', 'rMotor'], ['K-Pop', 'rMotor'], ['Power', 'rMotor'],
+      ['Indie', 'rSuave'], ['Musicales', 'rSuave'], ['Alt Metal', 'rSuave'], ['Rock', 'rSuave']];
+    let ritmo = 'rMotor';
+    for (const par of RITMOS) { if (fam.indexOf(par[0]) >= 0) { ritmo = par[1]; break; } }
+    const TEMPO = { rLento: 7.6, rCresc: 9.5, rSeco: 1.9, rPoli: 3.6, rRoto: 3.1, rSwing: 2.5, rMotor: 2.1, rSuave: 3.8 };
+    const LENTITUD = { 1: .85, 2: 1, 3: 1.25, 4: 1.5 };
+    const AMPLITUD = { 1: .62, 2: .48, 3: .34, 4: .24 };
+    const dur = TEMPO[ritmo] * (LENTITUD[p] || 1);
+    // PULSO RETIRADO (Ken, 31-ago): "esa cosa como palpitando de un destello, que ya me
+    // esta molestando". Era MI invento del 29-ago, el nunca lo pidio, y era justo lo que
+    // tapaba el flujo de color que si queria ver. pmax se conserva porque ahora es la
+    // OPACIDAD FIJA de la capa de color 1: presente siempre, sin latir.
+    const pulso = 'none';
+    const pmax = drift ? (AMPLITUD[p] || .34) : 0;
+    // deriva de color: ciclo lento y NO multiplo del pulso, asi la combinacion de los dos
+    // nunca cae dos veces en el mismo sitio aunque cada uno por separado sea regular
+    // Igual que el pulso: dmax pasa a ser la opacidad fija de la capa de color 2.
+    const deriva = 'none';
+    const dmax = drift ? +(pmax * .8).toFixed(3) : 0;
+    // EL VELO SE DESPLAZA: el scrim mide mas que la tarjeta y se desliza de lado a lado.
+    // Se mueve la sombra, no la nebulosa, asi que la textura no se difumina. 'alternate'
+    // = ida y vuelta sin salto de retorno, que es lo que lo separa del barrido descartado.
+    const ANCHOVELO = { 1: 210, 2: 190, 3: 170, 4: 150 };
+    const van = drift ? (ANCHOVELO[p] || 170) : 100;
+    // FORMA DEL VELO POR FAMILIA: [eje, angulo, patron de paradas, doble?]
+    //   eje 'h' desplaza en horizontal · 'v' en vertical · 'r' radial (la luz se abre
+    //   desde un punto y viaja en diagonal) · 't' telon (se estrecha y se abre)
+    const VELO_FAM = {
+      'Black / Doom / Sludge': ['v', 180, 'reg'], 'Nu Metal / Industrial': ['v', 200, 'irr'],
+      'Power / Symphonic / Folk': ['v', 168, 'reg'], 'Death / Tech Death': ['h', 135, 'reg'],
+      'Deathcore': ['h', 140, 'reg'], 'Thrash / Groove / Heavy': ['h', 132, 'reg'],
+      'Melodic Death': ['h', 120, 'reg'], 'Metalcore': ['h', 112, 'reg'],
+      'Punk / Emo': ['h', 146, 'reg'], 'Prog / Djent': ['h', 100, 'reg', 1],
+      'Prog Rock clásico': ['h', 82, 'reg', 1], 'Mathcore / Caótico': ['h', 158, 'irr'],
+      'Avant-garde / Experimental': ['h', 165, 'irr'], 'Post-Rock / Instrumental': ['h', 90, 'reg'],
+      'Funk / Jazz': ['r', 0, 'reg'], 'Hip-Hop / R&B': ['r', 0, 'reg'],
+      'Musicales / Teatro': ['t', 90, 'sim'], 'Art Pop / Teatral': ['t', 74, 'sim'],
+      'Indie / Psych / Garage': ['h', 86, 'reg'], 'Alt Metal / Grunge': ['h', 116, 'reg'],
+      'Rock clásico / Hard Rock': ['h', 104, 'reg'], 'Synth / Electrónico': ['h', 96, 'irr'],
+      'Pop / K-Pop': ['h', 76, 'reg']
+    };
+    const vf = VELO_FAM[fam] || ['h', 100, 'reg'];
+    const vEje = vf[0], vAng = vf[1], vPat = vf[2], vDoble = !!vf[3];
+    // Oscuridad del velo por tier. Los minimos (.16/.20/.24) van por encima de los que
+    // tenia la version estatica (.10/.14/.18): la legibilidad no puede empeorar nunca.
+    const SOMBRA = { 1: [.46, .16, .44, .18, .46], 2: [.50, .20, .48, .22, .50] };
+    let sv = SOMBRA[p] || [.52, .24, .50, .26, .52];
+    // En el velo doble hay DOS capas superpuestas; cada una tiene que aportar menos para
+    // que la suma de la misma oscuridad final:  a = 1 - raiz(1 - objetivo)
+    if (vDoble) sv = sv.map(v => 1 - Math.sqrt(1 - v));
+    const PARADA = { reg: [0, 24, 50, 74, 100], irr: [0, 17, 41, 66, 100], sim: [0, 30, 50, 70, 100] };
+    const VALOR = { reg: [0, 1, 2, 3, 4], irr: [0, 1, 2, 3, 4], sim: [0, 1, 1, 1, 0] };
+    const pos = PARADA[vPat], idx = VALOR[vPat];
+    const D = i => 'rgba(6,6,11,' + sv[idx[i]].toFixed(3) + ')';
+    const lin = ang => 'linear-gradient(' + ang + 'deg,' + pos.map((q, i) => D(i) + ' ' + q + '%').join(',') + ')';
+    const rad = () => 'radial-gradient(circle,' + [1, 1, 2, 0, 0].map((k, i) => 'rgba(6,6,11,' + sv[k].toFixed(3) + ') ' + [0, 20, 48, 76, 100][i] + '%').join(',') + ')';
+    const scrim = vEje === 'r' ? rad() : vDoble ? lin(vAng) + ',' + lin(vAng + 38) : lin(vAng);
+    const vbg = !drift ? '100% 100%'
+      : vEje === 'v' ? '100% ' + van + '%'
+      : vEje === 'r' ? van + '% ' + van + '%'
+      : vDoble ? van + '% 100%,' + Math.round(van * .71) + '% 100%'
+      : van + '% 100%';
+    const vbg2 = vEje === 't' ? '118% 100%' : vbg;   // solo lo usa el telon
+    const KF = { h: 'velo', v: 'veloV', r: 'veloR', t: 'veloT' };
+    const velo = drift ? KF[vEje] + ' ' + (dur * 4.1).toFixed(2) + 's ease-in-out infinite alternate' : 'none';
+    // FLUJO: los dos colores de la ficha se intercambian el sitio. Cada capa lleva DOS
+    // manchas con background-position propio (se cruzan entre ellas) y las dos capas van
+    // en direcciones contrarias. La CURVA la pone la familia, igual que el ritmo: eso hace
+    // que un death fluya a tirones y un post-rock en una marea larga.
+    const CURVA = { rSeco: 'cubic-bezier(.25,.95,.35,1)', rMotor: 'cubic-bezier(.25,.95,.35,1)',
+      rSwing: 'cubic-bezier(.6,.05,.25,.95)', rRoto: 'cubic-bezier(.9,.1,.1,.9)',
+      rCresc: 'cubic-bezier(.7,0,.3,1)' };
+    const curva = CURVA[ritmo] || 'ease-in-out';
+    // GIRO POR FAMILIA: las tres capas van rotadas, y el angulo sale de la familia. Es lo
+    // que hace que un doom y un funk no fluyan en la misma direccion aunque compartan el
+    // recorrido. Las capas van con inset:-32% para que el giro no descubra las esquinas.
+    // El angulo sale del que ya tiene el VELO para esa familia (tabla VELO_FAM, curada
+    // genero a genero) mas una pequena variacion propia. Con un hash puro salian solo 9
+    // angulos distintos para 23 familias — demasiadas colisiones para dar identidad.
+    const gBase = vAng + (this.H(fam) % 7) * 11;
+    const rotA = gBase + 'deg', rotB = (gBase + 58) + 'deg', rotV = (gBase - 34) + 'deg';
+    const lento = LENTITUD[p] || 1;
+    // TRES CORRIENTES A VELOCIDADES MUY DISTINTAS (factor 3 entre la rapida y la lenta).
+    // Ese contraste ES el efecto de corriente; si se igualan, se pierde. Los tiempos
+    // salen del nivel que Ken SI llego a ver (el build de diagnostico), no de "uso
+    // diario": cada vez que los alargue, dejo de percibirse.
+    // 'linear' a proposito: con ease-in-out la masa casi se detiene en cada parada y eso
+    // se lee como tiron. Lineal + seis paradas con giros = movimiento continuo.
+    const famCol = this.rgba(this.famColor(fam), .9);
+    const tonoEntre = (x, y) => { const A = this.hex2hsl(x), B = this.hex2hsl(y);
+      return this.hsl2hex(this.hueMid(A[0], B[0]), (A[1] + B[1]) / 2, (A[2] + B[2]) / 2); };
+    // PALETA DEL FLUJO: abanico ANCHO alrededor del tono del genero.
+    // El problema, medido: el CMAP esta apelotonado — 12 de 66 generos caen entre 30 y 60
+    // grados (power 47, musical 45, melodic death 71...) y la franja 120-150 esta vacia.
+    // Resultado: familias enteras se veian del mismo color. Dos arreglos:
+    //  1) OFF abre el abanico a ~240 grados, frente a los ~80 de tierPair, asi cada ficha
+    //     tiene contraste interno de sobra aunque sus dos generos sean del mismo tono.
+    //  2) giroFam desplaza el abanico entero segun la familia (-45..+45), asi power y
+    //     musical dejan de coincidir aunque partan del mismo hue.
+    // El tono del genero sigue LIDERANDO (OFF[0] = 0): la identidad se mantiene, lo que
+    // cambia es la compania. Y afecta SOLO al flujo — borde, anillo, etiquetas y la
+    // nebulosa conservan sus colores de siempre.
+    const baseH = this.hex2hsl(c1);
+    // ABANICO ADAPTATIVO. Ken: "el prog no lo necesitaba, o el death; pierden identidad.
+    // Me refiero a los generos donde abunda la falta de identidad". Asi que el ancho del
+    // abanico depende de la VARIEDAD REAL de la familia: las monotonas (musicales 2 tonos,
+    // melodic death 3) lo abren entero; las que ya varian (prog 12, death 12) casi nada.
+    // Y sobre todo: el COLOR DEL GENERO SIGUE SIENDO EL LIDER, exacto y sin desplazar
+    // (OFF[0] = 0 y el giro NO se le aplica). Solo se abre el acompanamiento, asi que la
+    // identidad no se toca ni en las familias que mas se abren.
+    const nvar = this.varFam(fam, this.state.data);
+    const ancho = nvar <= 3 ? 1 : nvar <= 6 ? 0.82 : nvar <= 9 ? 0.68 : 0.58;
+    const giroPal = nvar <= 6 ? ((this.H(fam) % 7) - 3) * 15 : 0;
+    const OFF = [0, 88, 162, -76, 44];
+    const flujoCols = OFF.map((o, i) => i === 0 ? c1 : this.hsl2hex(
+      baseH[0] + giroPal + o * ancho,
+      Math.min(100, baseH[1] * (i % 2 ? 1.06 : 0.94)),
+      Math.max(44, Math.min(72, baseH[2] + (i === 2 ? 7 : i === 3 ? -5 : 0)))));
+    const c1m = tonoEntre(c1, mix), c2m = tonoEntre(c2, mix);
+    // PATRON DE MOVIMIENTO POR FAMILIA, sacado de como suena el genero. Las tres capas de
+    // la ficha usan el MISMO patron (le da caracter propio) con duraciones y desfases
+    // distintos, asi que no van sincronizadas.
+    // NUEVE patrones para 23 familias: 2-3 cada uno, no 4-5. Las claves se copian de
+    // FAMILY_COLOR (llevan acentos; teclearlas ya costo un bug silencioso).
+    const MOV_FAM = { 'Black / Doom / Sludge': 'mv0', 'Death / Tech Death': 'mv1', 'Melodic Death': 'mv2', 'Deathcore': 'mv3', 'Metalcore': 'mv4', 'Mathcore / Caótico': 'mv5', 'Thrash / Groove / Heavy': 'mv6', 'Prog / Djent': 'mv7', 'Prog Rock clásico': 'mv8', 'Avant-garde / Experimental': 'mv9', 'Post-Rock / Instrumental': 'mv10', 'Funk / Jazz': 'mv11', 'Hip-Hop / R&B': 'mv12', 'Indie / Psych / Garage': 'mv13', 'Art Pop / Teatral': 'mv14', 'Musicales / Teatro': 'mv15', 'Alt Metal / Grunge': 'mv16', 'Nu Metal / Industrial': 'mv17', 'Synth / Electrónico': 'mv18', 'Pop / K-Pop': 'mv19', 'Power / Symphonic / Folk': 'mv20', 'Punk / Emo': 'mv21', 'Rock clásico / Hard Rock': 'mv22' };
+    const mov = MOV_FAM[fam] || 'mv0';
+    // FORMA DE LAS MASAS POR FAMILIA: [ancho, alto] en % del tile. OJO: la ficha es 2:1,
+    // asi que X e Y IGUALES ya dan una mancha 2:1 en pixeles. Para algo redondo, Y doble.
+    const FORMA_FAM = {
+      'Black / Doom / Sludge': [16, 10], 'Nu Metal / Industrial': [15, 11],
+      'Mathcore / Caótico': [10, 15], 'Avant-garde / Experimental': [11, 14],
+      'Funk / Jazz': [13, 15], 'Hip-Hop / R&B': [14, 14],
+      'Post-Rock / Instrumental': [17, 9], 'Musicales / Teatro': [15, 12],
+      'Deathcore': [11, 12], 'Thrash / Groove / Heavy': [12, 11]
+    };
+    // ESCALA POR TIER (Ken, 31-ago): "que el segundo tier se mueva como se mueve ahora de
+    // normal y que el primero sea mas". Asi que el tier 2 hereda lo que tenia el 1, y el 1
+    // sube por encima: mas opacidad, masas mayores, nucleo mas solido, CUATRO masas en vez
+    // de tres y un ciclo mas corto. Del 3 para abajo se apaga a proposito.
+    const INTEN = {
+      1: { o1: 1,   o2: .98, ov: .44, vm: .95, vel: .58, mas: 8, nuc: 9, cuantas: 4 },
+      2: { o1: 1,   o2: .96, ov: .40, vm: .90, vel: .64, mas: 7, nuc: 8, cuantas: 4 },
+      3: { o1: .80, o2: .68, ov: .24, vm: .58, vel: .92, mas: 2, nuc: 2, cuantas: 3 },
+      4: { o1: .52, o2: .42, ov: .15, vm: .36, vel: 1.3, mas: -2, nuc: -6, cuantas: 3 }
+    };
+    const IN = INTEN[p] || INTEN[3];
+    const F = (FORMA_FAM[fam] || [13, 12]).map(v => v + IN.mas);
+    const masa = (dx, dy, col, nucleo) =>
+      'radial-gradient(' + (F[0] + dx) + '% ' + (F[1] + dy) + '% at 50% 50%,' + col + ' 0%,' + col + ' ' + (nucleo + IN.nuc) + '%,transparent 90%)';
+    // ANILLO DE COLOR con c1 y c2 adyacentes (maximo contraste de tono) y los intermedios
+    // detras. Cada familia arranca en un punto distinto del anillo, asi que dos familias
+    // no lideran con el mismo color aunque compartan patron.
+    const ANILLO = ['var(--pf1)', 'var(--pf2)', 'var(--pf3)', 'var(--pf4)', 'var(--pf5)'];
+    const desde = (o, k) => Array.from({ length: k }, (_, i) => ANILLO[(o + i) % ANILLO.length]);
+    const r0 = this.H(fam) % ANILLO.length;
+    const arma = (off, base) => desde(r0 + off, IN.cuantas)
+      .map((col, i) => masa([0, -2, 2, -1][i], [0, 3, -2, 4][i], col, base - i * 2)).join(',');
+    const bgA = arma(0, 64);
+    const bgB = arma(2, 62);
+    const bgV = [masa(0, 1, famCol, 60 + IN.nuc)].concat(desde(r0 + 4, IN.cuantas - 1)
+      .map((col, i) => masa([2, -2, 1][i], [-1, 2, 3][i], col, 58 - i * 2))).join(',');
+    // desfases negativos: las tres capas arrancan en puntos distintos del mismo patron
+    // FRENO POR PATRON. Todos duran lo mismo, pero no recorren lo mismo: movSacudida es
+    // un Lissajous 3:2 y cubre el triple de terreno que movMarea en el mismo ciclo, asi
+    // que se PERCIBE mucho mas rapido. Ken: "los que estaban lentos estan bien, pero otros
+    // estan ya muy rapidos". Los que cubren mas terreno alargan su ciclo; los lentos, que
+    // el ya dio por buenos, se quedan igual (factor 1). Ningun patron se acelera.
+    const FRENO = {mv0:1,mv1:1.36,mv2:1.12,mv3:1.12,mv4:1,mv5:1.36,mv6:1.12,mv7:1.5,mv8:1,mv9:1.55,mv10:1,mv11:1.12,mv12:1.12,mv13:1.36,mv14:1,mv15:1,mv16:1,mv17:1.12,mv18:1,mv19:1.12,mv20:1,mv21:1.12,mv22:1};
+    const fr = (FRENO[mov] || 1) * IN.vel;
+    const d1 = 18 * fr, d2 = 27 * fr, d3 = 40 * fr;
+    const rio1 = drift ? mov + ' ' + d1.toFixed(1) + 's linear ' + (-(this.H(fam) % 100) / 100 * d1).toFixed(1) + 's infinite' : 'none';
+    const rio2 = drift ? mov + ' ' + d2.toFixed(1) + 's linear ' + (-((this.H(fam) + 37) % 100) / 100 * d2).toFixed(1) + 's infinite reverse' : 'none';
+    const rio3 = drift ? mov + ' ' + d3.toFixed(1) + 's linear ' + (-((this.H(fam) + 71) % 100) / 100 * d3).toFixed(1) + 's infinite' : 'none';
+    // EL COLOR DE LA FAMILIA VISITA LA FICHA. La esquina es la MISMA para toda la familia,
+    // asi que la identidad se ve tambien en por donde entra, no solo en el tono.
+    const VISITA = { 1: .30, 2: .24, 3: .17, 4: .10 };
+    const vmax = drift ? IN.vm : 0;
+    // El PASEO: por donde entra y hasta donde llega. Cuatro recorridos, uno por esquina,
+    // repartidos por familia — asi la identidad tambien esta en la direccion de entrada.
+    const PASEO = [['-8% -6%', '58% 46%'], ['104% -4%', '44% 52%'],
+      ['-6% 104%', '52% 44%'], ['106% 102%', '46% 50%']][this.H(fam) % 4];
+    const v0 = PASEO[0], v1 = PASEO[1];
+    const visitaBg = 'radial-gradient(52% 13% at 50% 50%,' + this.rgba(this.famColor(fam), .9) + ' 0%,' + this.rgba(this.famColor(fam), .9) + ' 22%,transparent 76%)';
+    const visita = drift ? 'visita ' + (22 * lento).toFixed(1) + 's ease-in-out infinite' : 'none';
+    // BRILLO DE BRASA: brightness() puro sobre la textura. No toca el tono — la paleta
+    // por genero queda intacta, que es la condicion que Ken puso desde el principio.
+    // RETIRADA (Ken, 31-ago): "lo opaca demasiado haciendo que sea menos notorio". Tenia
+    // razon y los numeros lo confirman: la brasa pasa media parte del ciclo POR DEBAJO de 1
+    // (bajaba a .865 en el tier 1) y el velo funciona justo al reves, revelando brillo.
+    // Se anulaban. Leccion: sobre el velo, nada que oscurezca la textura.
+    // La sustituye la saturacion de arriba, que hace el mismo gesto sin apagar nada.
+    // LATIDO DE LA PORTADA: RETIRADO (Ken, 31-ago: "no me convence del todo").
+    // Para devolverlo, cambia la linea de abajo por la comentada.
+    const LATIDO = { 1: .025, 2: .019, 3: .013, 4: .009 };
+    const lat = 0;
+    const latido = 'none';
+    // const lat = drift ? (LATIDO[p] || .013) : 0;
+    // const latido = drift ? 'latido ' + dur.toFixed(2) + 's ease-in-out infinite' : 'none';
+    const sentido = (this.H(fam) % 2) ? ' reverse' : '';
+    const giro = 'none'; const _giro_off = drift ? 'giro ' + (dur * 4.5).toFixed(2) + 's linear infinite' + sentido : 'none';
+    // el borde late al mismo compas que el pulso
+    const bordeAnim = 'none'; const _borde_off = drift ? 'borde ' + dur.toFixed(2) + 's ease-in-out infinite' : 'none';
+    const opacity = isHeard ? .5 : (p === 4 ? .82 : 1);
+    const covFilter = p === 4 ? 'grayscale(.55)' : 'none';
+    const lvColor = p === 4 ? '#7c8095' : mix;
+    const deco = isHeard ? 'line-through #10B981' : 'none';
+    const chkBorder = isHeard ? '#10B981' : 'rgba(255,255,255,.2)';
+    const chkBg = isHeard ? '#10B981' : 'rgba(0,0,0,.45)';
+    const chkColor = isHeard ? '#06231a' : '#8b8f9e';
+    // Scrim por tier: t1 casi nada (color al frente), t4 mas velo para legibilidad.
+    // Ahora lleva CINCO paradas con DOS ventanas despejadas (24% y 74%). Es lo que permite
+    // deslizarlo: con background-size 170-210% la tarjeta ve algo menos de medio degradado,
+    // asi que SIEMPRE tiene a la vez una zona despejada y una oscura, en cualquier posicion
+    // del recorrido. Por eso el texto se sigue leyendo mientras el velo viaja.
+    // El scrim ya se construyo arriba, junto al velo: su forma depende de la FAMILIA
+    // (angulo, eje y patron de paradas) y su oscuridad del TIER.
+    const rootStyle = 'position:relative;border-radius:15px;padding:15px;cursor:pointer;overflow:hidden;transition:transform .15s;background:#0b0b11;--scrim:' + scrim + ';border:1px solid ' + borderCol
+      + ';box-shadow:' + shadow + ';opacity:' + opacity
+      + ';--ring:' + ring + ';--cf:' + covFilter + ';--lvc:' + lvColor + ';--deco:' + deco
+      + ';--nsh:' + nmShadow + ';--ckb:' + chkBorder + ';--ckbg:' + chkBg + ';--ckc:' + chkColor + ';--pmax:' + pmax + ';--dmax:' + dmax + ';--lat:' + lat + ';--o1:' + IN.o1 + ';--o2:' + IN.o2 + ';--ov:' + IN.ov + ';--v0:' + v0 + ';--v1:' + v1 + ';--vbg:' + vbg + ';--vbg2:' + vbg2 + ';--vmax:' + vmax + ';--pc:' + this.rgba(c1, .85) + ';--pc2:' + this.rgba(c2, .85) + ';--pc3:' + this.rgba(mix, .85) + ';--pf1:' + this.rgba(flujoCols[0], .85) + ';--pf2:' + this.rgba(flujoCols[1], .85) + ';--pf3:' + this.rgba(flujoCols[2], .85) + ';--pf4:' + this.rgba(flujoCols[3], .85) + ';--pf5:' + this.rgba(flujoCols[4], .85) + ';--pc4:' + this.rgba(c1m, .85) + ';--pc5:' + this.rgba(c2m, .85) + ';--rotA:' + rotA + ';--rotB:' + rotB + ';--rotV:' + rotV + ';--eg:' + this.rgba(c1, .6);
+    this._h = this._h || {};
+    if (!this._h[a.name]) this._h[a.name] = {
+      onOpen: () => this.openDetail(a),
+      onToggle: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.toggleHeard(a.name); }
+    };
+    return {
+      name: a.name, onOpen: this._h[a.name].onOpen, onToggle: this._h[a.name].onToggle,
+      rootStyle, borderCol, shadow, ring, opacity, covFilter,
+      lv, lvColor, deco, nmShadow,
+      tags, yr: a.y || '', ds: a.desc,
+      acc, cat: CAT_LABEL[c], via: this.viaLabel(a),
+      metas, fem: !!a.female, rev: a.origin_note === 'rev',
+      chkBorder, chkBg, chkColor,
+      texKey, pulso, deriva, velo, visita, visitaBg, famCol,
+      rio1, rio2, rio3, bgA, bgB, bgV,
+      latido, giro, borde: bordeAnim
+    };
+  }
+
+  // ================= renderVals =================
+  renderVals() {
+    const __t0 = performance.now(); try { return this._rv(); } finally { if (window.__pf) window.__pf('renderVals', performance.now() - __t0); }
+  }
+  _rv() {
+    const s = this.state;
+    const mode = 'neb';
+    const drift = this.props.tierDrift ?? true;
+    const data = s.data;
+    let heard = s.heard || {};
+    if (data && this._needSeed) {
+      this._needSeed = false;
+      setTimeout(() => {
+        const m2 = window.CATALOG || {};
+        const h = {}; (m2.SEED_HEARD_NAMES || []).forEach(n => h[n] = 1);
+        this.saveHeard(h); this.setState({ heard: h });
+      }, 0);
+    }
+
+    const grainBg = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'.9\' numOctaves=\'3\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")';
+
+    // stats
+    const total = data ? data.length : 0;
+    const heardN = data ? data.filter(a => heard[a.name]).length : 0;
+    const famAll = data ? new Set(data.map(a => this.familyOf(a.genre))).size : 0;
+
+    // seg builders
+    const segBtn = (label, on, onClick, title) => ({ label, onClick, title: title || '',
+      bg: on ? '#C6FF3A' : 'transparent', color: on ? '#0a0a0c' : (on === false ? '#8b8f9e' : '#8b8f9e'), fw: on ? 700 : 400 });
+    const statusSeg = [['all', 'Todos'], ['todo', 'Por escuchar'], ['done', 'Escuchados']]
+      .map(([k, l]) => segBtn(l, s.fStatus === k, () => this.setState({ fStatus: k })));
+    const prioTitles = { 1: 'Empieza aquí: pioneros y esenciales para tu gusto', 2: 'Alta afinidad', 3: 'Más adelante', 4: 'Curiosidad / contexto' };
+    const prioSeg = [1, 2, 3, 4].map(p => segBtn(['1', '2', '3', '4'][p - 1], !!s.fPrio[p],
+      () => { const f = { ...s.fPrio }; if (f[p]) delete f[p]; else f[p] = true; this.setState({ fPrio: f }); }, prioTitles[p]));
+
+    // chips
+    const counts = {};
+    (data || []).forEach(a => { const f = this.familyOf(a.genre); counts[f] = (counts[f] || 0) + 1; });
+    const chipKeys = Object.keys(counts).sort((x, y) => counts[y] - counts[x] || x.localeCompare(y));
+    const chips = [{ label: 'Todos', num: total, color: s.chip ? '#8b8f9e' : '#C6FF3A', dot: '#C6FF3A',
+        border: s.chip ? '#23252f' : '#C6FF3A', onClick: () => this.setState({ chip: null }) }]
+      .concat(chipKeys.map(f => { const c = this.famColor(f); const on = s.chip === f;
+        return { label: f, num: counts[f], color: on ? c : '#8b8f9e', dot: c, border: on ? c : '#23252f',
+          onClick: () => this.setState({ chip: on ? null : f }) }; }));
+
+    // filter + group
+    const q = s.query.toLowerCase();
+    const passes = a => {
+      const isHeard = !!heard[a.name];
+      if (s.fStatus === 'todo' && isHeard) return false;
+      if (s.fStatus === 'done' && !isHeard) return false;
+      if (s.fem && !a.female) return false;
+      const pr = Object.keys(s.fPrio);
+      if (pr.length && !s.fPrio[this.prioOf(a)]) return false;
+      if (s.chip && this.familyOf(a.genre) !== s.chip) return false;
+      if (q && !(a.name.toLowerCase().includes(q) || a.genre.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))) return false;
+      return true;
+    };
+    const list = (data || []).filter(passes);
+    const groups = {};
+    list.forEach(a => { const f = this.familyOf(a.genre); (groups[f] = groups[f] || []).push(a); });
+    const keys = Object.keys(groups).sort((x, y) => groups[y].length - groups[x].length || x.localeCompare(y));
+    const families = keys.map(f => {
+      const col = this.famColor(f);
+      const items = groups[f].slice().sort((a, b) =>
+        (!!heard[a.name]) - (!!heard[b.name]) || this.prioOf(a) - this.prioOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
+      const hc = groups[f].filter(a => heard[a.name]).length, tot = groups[f].length, pct = tot ? Math.round(hc / tot * 100) : 0;
+      return {
+        name: f, color: col,
+        edge: this.rgba(col, .28),
+        // banda de género al estilo clásico: resplandor del COLOR BASE del género
+        bandBg: 'radial-gradient(150% 220% at 4% 0%,' + this.rgba(col, .22) + ',transparent 52%),rgba(255,255,255,.02)',
+        secBg: 'radial-gradient(135% 580px at 8% -12%,' + this.rgba(col, .14) + ',transparent 58%),radial-gradient(80% 500px at 95% 0%,' + this.rgba(col, .08) + ',transparent 64%)',
+        meta: tot + ' artistas · ' + hc + '/' + tot + ' escuchados · ' + pct + '%',
+        pctW: pct + '%',
+        // todo de una vez: sin "ver más"
+        items: items.map(a => this.cardVM(a, mode, drift)),
+        more: false,
+        moreLabel: '',
+        onMore: () => {}
+      };
+    }).filter(f => f.items.length);
+
+    // detail modal VM
+    const a = s.detail;
+    let dt = null, dtPicker = [], dtAlbums = [], dtLoading = false, dtNoArt = false, dtDiscEmpty = false;
+    if (a) {
+      const vm = this.cardVM(a, mode, false);
+      const p = this.prioOf(a);
+      const pl = ((heard[a.name] && p === 1) ? 'pilar de tu gusto' : { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p]);
+      dt = { ...vm, lv: 'nivel ' + p + ' · ' + pl + ' · ' + this.familyOf(a.genre),
+        desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5) };
+      if (s.dtRel === null) dtLoading = true;
+      else {
+        const withArt = s.dtRel.filter(r => r.art);
+        if (!withArt.length) dtNoArt = true;
+        const curPick = this.lsget('pick:' + a.name);
+        dtPicker = withArt.map(r => ({ t: r.t, art: r.art,
+          border: curPick === r.art ? (dt.acc) : 'transparent',
+          onPick: () => { this.lsset('pick:' + a.name, r.art);
+            document.querySelectorAll('[data-cov],[data-cov-d]').forEach(el => {
+              if ((el.getAttribute('data-cov') || el.getAttribute('data-cov-d')) === a.name) this.setImg(el, r.art); });
+            this.forceUpdate(); } }));
+        dtAlbums = s.dtRel.map(r => ({ t: r.t, y: r.y || '', art: r.art || '' }));
+        if (!s.dtRel.length) dtDiscEmpty = true;
+      }
+    }
+
+    // next modal VM
+    let nx = null, nextInfo = '';
+    if (s.nextOpen) {
+      const pool = this.nextCandidates();
+      if (!pool.length) nextInfo = 'Nada pendiente con estos filtros. ¡Todo escuchado!';
+      else {
+        const idx = ((s.nextIdx % pool.length) + pool.length) % pool.length;
+        const cand = pool[idx];
+        nextInfo = 'Sugerencia ' + (idx + 1) + ' de ' + pool.length + ' — por prioridad y año' + (s.chip ? ' · ' + s.chip : '');
+        nx = this.cardVM(cand, mode, false);
+        this._nextName = cand.name;
+      }
+    }
+
+    return {
+      grainBg,
+      build: this.BUILD,
+      stTotal: total, stHeard: heardN, stLeft: total - heardN, stGen: famAll,
+      progW: (total ? Math.round(heardN / total * 100) : 0) + '%',
+      onQuery: e => { const v = e.target.value.trim(); clearTimeout(this._qT); this._qT = setTimeout(() => this.setState({ query: v }), 280); },
+      statusSeg, prioSeg,
+      onFem: () => this.setState({ fem: !s.fem }),
+      femBg: s.fem ? '#C6FF3A' : 'transparent', femColor: s.fem ? '#0a0a0c' : '#8b8f9e', femFw: s.fem ? 700 : 400,
+      chips, families, isEmpty: data ? !list.length : false,
+      // detail
+      detailOpen: !!a, dt, dtPicker, dtAlbums, dtLoading, dtNoArt, dtDiscEmpty,
+      closeDetail: () => this.setState({ detail: null, dtRel: null }),
+      onDetailBg: e => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-modalbg') === 'detail') this.setState({ detail: null, dtRel: null }); },
+      // next
+      nextOpen: s.nextOpen, nx, nextInfo,
+      openNext: () => this.setState({ nextOpen: true, nextIdx: 0 }),
+      closeNext: () => this.setState({ nextOpen: false }),
+      onNextBg: e => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-modalbg') === 'next') this.setState({ nextOpen: false }); },
+      nextAnother: () => this.setState({ nextIdx: s.nextIdx + 1 }),
+      nextMark: () => { if (this._nextName) this.toggleHeard(this._nextName); },
+      // backup
+      backupOpen: s.backupOpen, backupText: this._backupText || '',
+      openBackup: () => { this._backupText = JSON.stringify(heard); this.setState({ backupOpen: true }); },
+      closeBackup: () => this.setState({ backupOpen: false }),
+      onBackupBg: e => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-modalbg') === 'backup') this.setState({ backupOpen: false }); },
+      onBackupInput: e => { this._backupText = e.target.value; },
+      onCopyBackup: () => { navigator.clipboard.writeText(this._backupText || '').then(() => this.toast('Copiado al portapapeles')).catch(() => this.toast('Selecciona y copia manualmente')); },
+      onImportBackup: () => { try { const v = JSON.parse(this._backupText); this.saveHeard(v); this.setState({ heard: v, backupOpen: false }); this.toast('Progreso importado'); } catch (e) { this.toast('Texto inválido'); } },
+      toastMsg: s.toastMsg
+    };
+  }
+}
+</script>
+</body>
+</html>
