@@ -301,6 +301,29 @@ a{color:#C6FF3A}a:hover{color:#dcff7d}
   85.7%{background-position:17.2% 45.7%,82.8% 54.3%,76.2% 79.7%,23.8% 20.3%;background-size:239.6% 239.6%,275.6% 275.6%,347.6% 347.6%,295.8% 295.8%}
   100%{background-position:50% 70.5%,50% 29.5%,92% 71.9%,8% 28.1%;background-size:300% 300%,249.8% 249.8%,328.1% 328.1%,361.2% 361.2%}
 }
+/* 22-sep-2026: Clasica moderna 1:3 (barrido amplio con triple ondulacion, el gesto de un director)
+   y Folk / Musicas del mundo 2:1 (un ocho horizontal, una danza en circulo). */
+@keyframes mv23{
+  0%{background-position:50% 70.4%,50% 29.6%,84% 33.8%,16% 66.2%;background-size:300% 300%,255.5% 255.5%,325% 325%,354.3% 354.3%}
+  14.3%{background-position:76.6% 38.7%,23.4% 61.3%,71.2% 73.4%,28.8% 26.6%;background-size:343% 343%,297.5% 297.5%,277.3% 277.3%,327.1% 327.1%}
+  28.6%{background-position:83.1% 50.1%,16.9% 49.9%,42.4% 24%,57.6% 76%;background-size:353.6% 353.6%,341.4% 341.4%,246.7% 246.7%,279.5% 279.5%}
+  42.9%{background-position:64.8% 61.2%,35.2% 38.8%,19.4% 73.5%,80.6% 26.5%;background-size:323.9% 323.9%,354.1% 354.1%,256.2% 256.2%,247.3% 247.3%}
+  57.1%{background-position:35.2% 29.7%,64.8% 70.3%,19.4% 33.7%,80.6% 66.3%;background-size:276.1% 276.1%,326.1% 326.1%,298.8% 298.8%,254.8% 254.8%}
+  71.4%{background-position:16.9% 75.3%,83.1% 24.7%,42.4% 55.8%,57.6% 44.2%;background-size:246.4% 246.4%,278.4% 278.4%,342.2% 342.2%,296.3% 296.3%}
+  85.7%{background-position:23.4% 24.6%,76.6% 75.4%,71.2% 55.7%,28.8% 44.3%;background-size:257% 257%,247% 247%,353.9% 353.9%,340.6% 340.6%}
+  100%{background-position:50% 70.4%,50% 29.6%,84% 33.8%,16% 66.2%;background-size:300% 300%,255.5% 255.5%,325% 325%,354.3% 354.3%}
+}
+@keyframes mv24{
+  0%{background-position:50% 67.3%,50% 32.7%,50% 81.6%,50% 18.4%;background-size:305% 305%,250% 250%,335.9% 335.9%,372.2% 372.2%}
+  14.3%{background-position:81.2% 85.5%,81.2% 14.5%,18.8% 56.2%,18.8% 43.8%;background-size:358.2% 358.2%,301.9% 301.9%,276.9% 276.9%,338.6% 338.6%}
+  28.6%{background-position:36.1% 77%,36.1% 23%,63.9% 26.1%,63.9% 73.9%;background-size:371.3% 371.3%,356.2% 356.2%,239.1% 239.1%,279.7% 279.7%}
+  42.9%{background-position:25% 48.2%,25% 51.8%,75% 14%,75% 86%;background-size:334.5% 334.5%,371.9% 371.9%,250.9% 250.9%,239.9% 239.9%}
+  57.1%{background-position:75% 20.7%,75% 79.3%,25% 29%,25% 71%;background-size:275.5% 275.5%,337.2% 337.2%,303.5% 303.5%,249.1% 249.1%}
+  71.4%{background-position:63.9% 15.4%,63.9% 84.6%,36.1% 59.8%,36.1% 40.2%;background-size:238.7% 238.7%,278.3% 278.3%,357.2% 357.2%,300.4% 300.4%}
+  85.7%{background-position:18.8% 36.1%,18.8% 63.9%,81.2% 83.2%,81.2% 16.8%;background-size:251.8% 251.8%,239.5% 239.5%,371.6% 371.6%,355.2% 355.2%}
+  100%{background-position:50% 67.3%,50% 32.7%,50% 81.6%,50% 18.4%;background-size:305% 305%,250% 250%,335.9% 335.9%,372.2% 372.2%}
+}
+
 @keyframes velo{from{background-position:0% 50%}to{background-position:100% 50%}}
 /* Las tres variantes de recorrido del velo. Cual se usa lo decide la FAMILIA, en la
    tabla VELO_FAM del JS, junto con el angulo del degradado. Es lo que hace que un doom
@@ -750,6 +773,12 @@ class Component extends DCLogic {
     // fix: estos nunca estuvieron en el mapa y dejaban tarjetas en gris
     [/neoclassical/,'#D6B04B'],[/instrumental|guitar/,'#4BD6C0'],[/noise/,'#8C8CFF'],
     [/trip.?hop/,'#7A5AD6'],[/ethereal|ambient/,'#A8D8FF'],[/zeuhl|canterbury/,'#C86ED6'],
+    // 22-sep-2026, familias nuevas. Clasica en violetas (su familia es #E07BFF); folk y musicas
+    // del mundo en verdes y afines (su familia es #5AD95A). Van DESPUES de /neoclassical/ para
+    // no robarle esa etiqueta, y separados mas de 42 grados para que el flujo no salga monocromo.
+    [/cl[aá]sica|classical/,'#D98BFF'],[/minimalis/,'#FF8BD0'],
+    [/percusi[oó]n|pianola|micropolif|ballet|cuarteto|orquestal|folclore/,'#8BA0FF'],
+    [/tango|bandone/,'#9AE04B'],[/flamenco/,'#4BD68A'],[/hindust|tabla|raga/,'#3BCFB0'],[/afrobeat/,'#E0A04B'],
     [/punk/,'#FF7A5C'],
     [/pop/,'#FF5CB0'],[/rock/,'#7AA8FF']
   ];
@@ -763,7 +792,13 @@ class Component extends DCLogic {
     ["Metalcore", g => /metalcore|post-hardcore|hardcore/i.test(g)],
     ["Prog Rock clásico", g => /prog rock/i.test(g) && !/metal|djent/i.test(g)],
     ["Prog / Djent", g => /prog|djent|tech metal|tech \/|math rock|math metal/i.test(g)],
-    ["Power / Symphonic / Folk", g => /power|symphonic|folk|pirate/i.test(g)],
+    // 22-sep-2026: esta familia eran dos mundos pegados por accidente de regla. Aqui se
+    // queda el METAL (power, sinfonico, folk metal); el folk sin metal se va a su familia.
+    // "Power Pop" ya no entra: cae en Pop o en Indie segun su cadena.
+    ["Power / Symphonic / Folk", g => (/power|symphonic|pirate/i.test(g) && !/power pop/i.test(g)) || (/folk/i.test(g) && /metal|black|viking|pagan|thrash/i.test(g))],
+    ["Clásica moderna", g => /cl[aá]sica moderna|modern classical|contempor[aá]ne|minimalis/i.test(g)],
+    // El folk con indie, anti-folk, hard rock o post-rock en la cadena sigue a esas familias.
+    ["Folk / Músicas del mundo", g => /folk|flamenco|tango|hindust|carn[aá]tic|qawwali/i.test(g) && !/indie|anti-folk|hard rock|post-rock/i.test(g)],
     ["Black / Doom / Sludge", g => /black|doom|sludge/i.test(g)],
     ["Thrash / Groove / Heavy", g => /thrash|groove|heavy|nwobhm/i.test(g)],
     ["Nu Metal / Industrial", g => /nu metal|industrial/i.test(g)],
@@ -782,9 +817,9 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-09-22a";
+  BUILD = "2026-09-22b";
 
-  FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
+  FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
   familyOf(g) { for (const [name, test] of this.FAMILY_RULES) { if (test(g)) return name; } return "Otros"; }
   famColor(f) { return this.FAMILY_COLOR[f] || "#8a8ea6"; }
@@ -1523,7 +1558,8 @@ class Component extends DCLogic {
       ['Nu Metal', 'rSeco'], ['Djent', 'rPoli'], ['Prog Rock', 'rPoli'], ['Mathcore', 'rRoto'],
       ['Avant', 'rRoto'], ['Funk', 'rSwing'], ['Hip-Hop', 'rSwing'], ['Metalcore', 'rMotor'],
       ['Punk', 'rMotor'], ['Synth', 'rMotor'], ['K-Pop', 'rMotor'], ['Power', 'rMotor'],
-      ['Indie', 'rSuave'], ['Musicales', 'rSuave'], ['Alt Metal', 'rSuave'], ['Rock', 'rSuave']];
+      ['Indie', 'rSuave'], ['Musicales', 'rSuave'], ['Alt Metal', 'rSuave'], ['Clásica', 'rCresc'],
+      ['Músicas del mundo', 'rSwing'], ['Rock', 'rSuave']];
     let ritmo = 'rMotor';
     for (const par of RITMOS) { if (fam.indexOf(par[0]) >= 0) { ritmo = par[1]; break; } }
     const TEMPO = { rLento: 7.6, rCresc: 9.5, rSeco: 1.9, rPoli: 3.6, rRoto: 3.1, rSwing: 2.5, rMotor: 2.1, rSuave: 3.8 };
@@ -1561,7 +1597,10 @@ class Component extends DCLogic {
       'Musicales / Teatro': ['t', 90, 'sim'], 'Art Pop / Teatral': ['t', 74, 'sim'],
       'Indie / Psych / Garage': ['h', 86, 'reg'], 'Alt Metal / Grunge': ['h', 116, 'reg'],
       'Rock clásico / Hard Rock': ['h', 104, 'reg'], 'Synth / Electrónico': ['h', 96, 'irr'],
-      'Pop / K-Pop': ['h', 76, 'reg']
+      'Pop / K-Pop': ['h', 76, 'reg'],
+      // 22-sep-2026: la clasica abre y cierra como un telon de concierto; el folk barre en
+      // un angulo que no usaba nadie (58) con paradas irregulares, como una danza.
+      'Clásica moderna': ['t', 64, 'sim'], 'Folk / Músicas del mundo': ['h', 58, 'irr']
     };
     const vf = VELO_FAM[fam] || ['h', 100, 'reg'];
     const vEje = vf[0], vAng = vf[1], vPat = vf[2], vDoble = !!vf[3];
@@ -1646,7 +1685,7 @@ class Component extends DCLogic {
     // distintos, asi que no van sincronizadas.
     // NUEVE patrones para 23 familias: 2-3 cada uno, no 4-5. Las claves se copian de
     // FAMILY_COLOR (llevan acentos; teclearlas ya costo un bug silencioso).
-    const MOV_FAM = { 'Black / Doom / Sludge': 'mv0', 'Death / Tech Death': 'mv1', 'Melodic Death': 'mv2', 'Deathcore': 'mv3', 'Metalcore': 'mv4', 'Mathcore / Caótico': 'mv5', 'Thrash / Groove / Heavy': 'mv6', 'Prog / Djent': 'mv7', 'Prog Rock clásico': 'mv8', 'Avant-garde / Experimental': 'mv9', 'Post-Rock / Instrumental': 'mv10', 'Funk / Jazz': 'mv11', 'Hip-Hop / R&B': 'mv12', 'Indie / Psych / Garage': 'mv13', 'Art Pop / Teatral': 'mv14', 'Musicales / Teatro': 'mv15', 'Alt Metal / Grunge': 'mv16', 'Nu Metal / Industrial': 'mv17', 'Synth / Electrónico': 'mv18', 'Pop / K-Pop': 'mv19', 'Power / Symphonic / Folk': 'mv20', 'Punk / Emo': 'mv21', 'Rock clásico / Hard Rock': 'mv22' };
+    const MOV_FAM = { 'Black / Doom / Sludge': 'mv0', 'Death / Tech Death': 'mv1', 'Melodic Death': 'mv2', 'Deathcore': 'mv3', 'Metalcore': 'mv4', 'Mathcore / Caótico': 'mv5', 'Thrash / Groove / Heavy': 'mv6', 'Prog / Djent': 'mv7', 'Prog Rock clásico': 'mv8', 'Avant-garde / Experimental': 'mv9', 'Post-Rock / Instrumental': 'mv10', 'Funk / Jazz': 'mv11', 'Hip-Hop / R&B': 'mv12', 'Indie / Psych / Garage': 'mv13', 'Art Pop / Teatral': 'mv14', 'Musicales / Teatro': 'mv15', 'Alt Metal / Grunge': 'mv16', 'Nu Metal / Industrial': 'mv17', 'Synth / Electrónico': 'mv18', 'Pop / K-Pop': 'mv19', 'Power / Symphonic / Folk': 'mv20', 'Punk / Emo': 'mv21', 'Rock clásico / Hard Rock': 'mv22', 'Clásica moderna': 'mv23', 'Folk / Músicas del mundo': 'mv24' };
     const mov = MOV_FAM[fam] || 'mv0';
     // FORMA DE LAS MASAS POR FAMILIA: [ancho, alto] en % del tile. OJO: la ficha es 2:1,
     // asi que X e Y IGUALES ya dan una mancha 2:1 en pixeles. Para algo redondo, Y doble.
@@ -1655,7 +1694,8 @@ class Component extends DCLogic {
       'Mathcore / Caótico': [10, 15], 'Avant-garde / Experimental': [11, 14],
       'Funk / Jazz': [13, 15], 'Hip-Hop / R&B': [14, 14],
       'Post-Rock / Instrumental': [17, 9], 'Musicales / Teatro': [15, 12],
-      'Deathcore': [11, 12], 'Thrash / Groove / Heavy': [12, 11]
+      'Deathcore': [11, 12], 'Thrash / Groove / Heavy': [12, 11],
+      'Clásica moderna': [12, 13], 'Folk / Músicas del mundo': [14, 12]
     };
     // ESCALA POR TIER (Ken, 31-ago): "que el segundo tier se mueva como se mueve ahora de
     // normal y que el primero sea mas". Asi que el tier 2 hereda lo que tenia el 1, y el 1
@@ -1689,7 +1729,7 @@ class Component extends DCLogic {
     // que se PERCIBE mucho mas rapido. Ken: "los que estaban lentos estan bien, pero otros
     // estan ya muy rapidos". Los que cubren mas terreno alargan su ciclo; los lentos, que
     // el ya dio por buenos, se quedan igual (factor 1). Ningun patron se acelera.
-    const FRENO = {mv0:1,mv1:1.36,mv2:1.12,mv3:1.12,mv4:1,mv5:1.36,mv6:1.12,mv7:1.5,mv8:1,mv9:1.55,mv10:1,mv11:1.12,mv12:1.12,mv13:1.36,mv14:1,mv15:1,mv16:1,mv17:1.12,mv18:1,mv19:1.12,mv20:1,mv21:1.12,mv22:1};
+    const FRENO = {mv0:1,mv1:1.36,mv2:1.12,mv3:1.12,mv4:1,mv5:1.36,mv6:1.12,mv7:1.5,mv8:1,mv9:1.55,mv10:1,mv11:1.12,mv12:1.12,mv13:1.36,mv14:1,mv15:1,mv16:1,mv17:1.12,mv18:1,mv19:1.12,mv20:1,mv21:1.12,mv22:1,mv23:1.24,mv24:1.12};
     const fr = (FRENO[mov] || 1) * IN.vel;
     const d1 = 18 * fr, d2 = 27 * fr, d3 = 40 * fr;
     const rio1 = drift ? mov + ' ' + d1.toFixed(1) + 's linear ' + (-(this.H(fam) % 100) / 100 * d1).toFixed(1) + 's infinite' : 'none';
