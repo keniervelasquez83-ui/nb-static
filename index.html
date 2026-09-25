@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-09-24n"></script>
-<script src="./support.js?v=2026-09-24n"></script>
+<script src="./catalog-data.js?v=2026-09-25a"></script>
+<script src="./support.js?v=2026-09-25a"></script>
 </head>
 <body>
 <x-dc>
@@ -495,7 +495,7 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
     <button onClick="{{onFem}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{femBg}};color:{{femColor}};font-weight:{{femFw}}">♀ Voz femenina</button>
   </div>
   <div style="display:flex;background:#121319;border:1px solid #23252f;border-radius:11px;overflow:hidden">
-    <sc-for list="{{prioSeg}}" as="b" hint-placeholder-count="4">
+    <sc-for list="{{prioSeg}}" as="b" hint-placeholder-count="5">
       <button onClick="{{b.onClick}}" title="{{b.title}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{b.bg}};color:{{b.color}};font-weight:{{b.fw}}">{{b.label}}</button>
     </sc-for>
   </div>
@@ -817,7 +817,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-09-24n";
+  BUILD = "2026-09-25a";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -876,6 +876,9 @@ class Component extends DCLogic {
     return this.hsl2hex(this.hueMid(A[0], B[0]) + off, s, l); }
 
   prioOf(a) { return a.p || ((a.pick || a.origin === 'rec') ? 2 : 3); }
+  // Tier 2.5 (Ken, 25-sep-2026): fichas del ② que sobresalen. Siguen siendo ② en color y animacion;
+  // solo cambian la etiqueta y el orden (van antes que el resto del ②).
+  rankOf(a) { const p = this.prioOf(a); return (p === 2 && a.p25) ? 1.5 : p; }
   catOf(a) { return a.c || 2; }
   viaLabel(a) { if (a.via) return 'vía ' + a.via; if (a.origin === 'lista') return 'tu lista'; if (a.origin === 'heard') return 'ya escuchada'; return 'recomendada'; }
 
@@ -1499,7 +1502,7 @@ class Component extends DCLogic {
     return data.filter(a => !(heard || {})[a.name]
       && (!chip || this.familyOf(a.genre) === chip)
       && (!fem || a.female))
-      .sort((a, b) => this.prioOf(a) - this.prioOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
+      .sort((a, b) => this.rankOf(a) - this.rankOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
   }
 
   // ================= card view-model =================
@@ -1507,7 +1510,7 @@ class Component extends DCLogic {
     const heard = this.state.heard || {};
     const isHeard = !!heard[a.name];
     this._vmCache = this._vmCache || {};
-    const ck = 'v50|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0);
+    const ck = 'v51|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0);
     if (this._vmCache[ck]) return this._vmCache[ck];
     const vm = this.buildVM(a, mode, drift, isHeard);
     this._vmCache[ck] = vm;
@@ -1528,7 +1531,7 @@ class Component extends DCLogic {
     const CAT_LABEL = { 1: 'cat 1 · reinvención', 2: 'cat 2 · identidad', 3: '✦ comodín' };
     const PRIO_LABEL = { 1: '① empieza aquí', 2: '② alta afinidad', 3: '③ más adelante', 4: '④ curiosidad' };
     const RN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV' };
-    const lv = ((isHeard && p === 1) ? '① pilar de tu gusto' : PRIO_LABEL[p]) + ' · ' + RN[p];
+    const lv = (p === 2 && a.p25) ? '2.5 · sobresale del ② · II½' : ((isHeard && p === 1) ? '① pilar de tu gusto' : PRIO_LABEL[p]) + ' · ' + RN[p];
     const tagBase = "font-family:'Space Mono',monospace;padding:1px 7px;border-radius:99px;font-size:9px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;";
     const tags = co.parts.map(pt => { const tcol = this.subColor(pt); // color BASE real del subgénero (sin transformar por tier)
       const tlit = this.hsl2hex(this.hex2hsl(tcol)[0], 90, 70); // texto del tag aclarado para contraste
@@ -1541,6 +1544,7 @@ class Component extends DCLogic {
       { t: CAT_LABEL[c], style: metaBase + acc + ';color:' + acc },
       { t: this.viaLabel(a), style: metaBase + 'rgba(255,255,255,.16);color:#9599a8' }
     ];
+    if (p === 2 && a.p25) metas.push({ t: '▲ 2.5', style: metaBase + acc + ';color:' + acc });
     if (a.female) metas.push({ t: '♀ fem', style: metaBase + 'rgba(182,107,255,.4);color:#B66BFF' });
     if (a.origin_note === 'rev') metas.push({ t: '⚠ confirmar', style: metaBase + 'rgba(255,178,59,.4);color:#FFB23B' });
     const nmShadow = (p === 1 ? '0 0 18px ' + this.rgba(c1, .5) + ',' : '') + '0 0 4px rgba(0,0,0,.98),0 0 10px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,1)';
@@ -1832,8 +1836,8 @@ class Component extends DCLogic {
       bg: on ? '#C6FF3A' : 'transparent', color: on ? '#0a0a0c' : (on === false ? '#8b8f9e' : '#8b8f9e'), fw: on ? 700 : 400 });
     const statusSeg = [['all', 'Todos'], ['todo', 'Por escuchar'], ['done', 'Escuchados']]
       .map(([k, l]) => segBtn(l, s.fStatus === k, () => this.setState({ fStatus: k })));
-    const prioTitles = { 1: 'Empieza aquí: pioneros y esenciales para tu gusto', 2: 'Alta afinidad', 3: 'Más adelante', 4: 'Curiosidad / contexto' };
-    const prioSeg = [1, 2, 3, 4].map(p => segBtn(['1', '2', '3', '4'][p - 1], !!s.fPrio[p],
+    const prioTitles = { 1: 'Empieza aquí: pioneros y esenciales para tu gusto', '2.5': 'Lo que sobresale dentro del ②', 2: 'Alta afinidad', 3: 'Más adelante', 4: 'Curiosidad / contexto' };
+    const prioSeg = [1, '2.5', 2, 3, 4].map(p => segBtn(String(p), !!s.fPrio[p],
       () => { const f = { ...s.fPrio }; if (f[p]) delete f[p]; else f[p] = true; this.setState({ fPrio: f }); }, prioTitles[p]));
 
     // chips
@@ -1854,7 +1858,7 @@ class Component extends DCLogic {
       if (s.fStatus === 'done' && !isHeard) return false;
       if (s.fem && !a.female) return false;
       const pr = Object.keys(s.fPrio);
-      if (pr.length && !s.fPrio[this.prioOf(a)]) return false;
+      if (pr.length && !(s.fPrio[this.prioOf(a)] || (s.fPrio['2.5'] && this.prioOf(a) === 2 && a.p25))) return false;
       if (s.chip && this.familyOf(a.genre) !== s.chip) return false;
       if (q && !(a.name.toLowerCase().includes(q) || a.genre.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))) return false;
       return true;
@@ -1866,7 +1870,7 @@ class Component extends DCLogic {
     const families = keys.map(f => {
       const col = this.famColor(f);
       const items = groups[f].slice().sort((a, b) =>
-        (!!heard[a.name]) - (!!heard[b.name]) || this.prioOf(a) - this.prioOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
+        (!!heard[a.name]) - (!!heard[b.name]) || this.rankOf(a) - this.rankOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
       const hc = groups[f].filter(a => heard[a.name]).length, tot = groups[f].length, pct = tot ? Math.round(hc / tot * 100) : 0;
       return {
         name: f, color: col,
@@ -1891,7 +1895,7 @@ class Component extends DCLogic {
       const vm = this.cardVM(a, mode, false);
       const p = this.prioOf(a);
       const pl = ((heard[a.name] && p === 1) ? 'pilar de tu gusto' : { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p]);
-      dt = { ...vm, lv: 'nivel ' + p + ' · ' + pl + ' · ' + this.familyOf(a.genre),
+      dt = { ...vm, lv: ((p === 2 && a.p25) ? 'nivel 2.5 · sobresale del ②' : 'nivel ' + p + ' · ' + pl) + ' · ' + this.familyOf(a.genre),
         desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5) };
       if (s.dtRel === null) dtLoading = true;
       else {
