@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-09-29c"></script>
-<script src="./support.js?v=2026-09-29c"></script>
+<script src="./catalog-data.js?v=2026-09-29d"></script>
+<script src="./support.js?v=2026-09-29d"></script>
 </head>
 <body>
 <x-dc>
@@ -468,7 +468,7 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
 
 <header style="position:relative;z-index:2;padding:42px 28px 26px;border-bottom:1px solid #23252f;background:linear-gradient(180deg, rgba(18,19,25,.6), transparent)">
   <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,8vw,86px);line-height:.92;letter-spacing:1px">CATÁLOGO<span style="color:#C6FF3A">_</span>SONORO</div>
-  <div style="color:#8b8f9e;font-family:'Space Mono',monospace;font-size:13px;margin-top:8px;max-width:620px">Tu lista de exploración musical, catalogada por género y conectada a lo que ya conoces. Marca lo que escuchas. <b style="color:#ECEEF2">Crece con cada tanda de recomendaciones.</b><br>Prioridad de escucha: <b style="color:#ECEEF2">① empieza aquí</b> (pioneros/esenciales para ti) · ② alta afinidad · ③ más adelante · ④ curiosidad. Cada tarjeta muestra su año, su categoría (<b style="color:#ECEEF2">cat 1</b> reinvención · <b style="color:#ECEEF2">cat 2</b> identidad · <b style="color:#ECEEF2">✦ comodín</b>) y de qué rama vino («vía»).</div>
+  <div style="color:#8b8f9e;font-family:'Space Mono',monospace;font-size:13px;margin-top:8px;max-width:620px">Tu lista de exploración musical, catalogada por género y conectada a lo que ya conoces. Marca lo que escuchas. <b style="color:#ECEEF2">Crece con cada tanda de recomendaciones.</b><br>Prioridad de escucha: <b style="color:#ECEEF2">① empieza aquí</b> (pioneros/esenciales para ti) · ② alta afinidad · ③ más adelante · ④ curiosidad · <b style="color:#FFB23B">⚠ por confirmar</b> (pocas fuentes: sin tier hasta que las escuches, al final de cada familia). Cada tarjeta muestra su año, su categoría (<b style="color:#ECEEF2">cat 1</b> reinvención · <b style="color:#ECEEF2">cat 2</b> identidad · <b style="color:#ECEEF2">✦ comodín</b>) y de qué rama vino («vía»).</div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
     <div style="background:#121319;border:1px solid #23252f;border-radius:12px;padding:10px 16px;min-width:96px"><div style="font-family:'Bebas Neue';font-size:30px;line-height:1;color:#C6FF3A">{{stTotal}}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e;text-transform:uppercase;letter-spacing:1px;margin-top:3px">Artistas</div></div>
     <div style="background:#121319;border:1px solid #23252f;border-radius:12px;padding:10px 16px;min-width:96px"><div style="font-family:'Bebas Neue';font-size:30px;line-height:1;color:#10B981">{{stHeard}}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#8b8f9e;text-transform:uppercase;letter-spacing:1px;margin-top:3px">Escuchados</div></div>
@@ -519,8 +519,17 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
           <div style="height:4px;border-radius:99px;background:rgba(255,255,255,.12);margin-top:12px;overflow:hidden"><i style="display:block;height:100%;width:{{fam.pctW}};background:{{fam.color}};transition:width .6s cubic-bezier(.2,.8,.2,1)"></i></div>
         </div>
       </div>
+      <!-- Bloques de la familia: primero las fichas con tier; despues, si las hay, las pendientes
+           por confirmar con su propia cabecera (Ken, 29-sep-2026). -->
+      <sc-for list="{{fam.blocks}}" as="bk" hint-placeholder-count="1">
+      <sc-if value="{{bk.head}}" hint-placeholder-val="{{false}}">
+        <div style="margin-top:34px;padding:14px 18px;border-radius:12px;border:1px dashed rgba(255,178,59,.45);background:rgba(255,178,59,.05)">
+          <div style="font-family:'Space Mono',monospace;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#FFB23B;font-weight:700">{{bk.head}}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#a7abbb;margin-top:6px;line-height:1.5">{{bk.sub}}</div>
+        </div>
+      </sc-if>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:16px">
-        <sc-for list="{{fam.items}}" as="it" hint-placeholder-count="4">
+        <sc-for list="{{bk.items}}" as="it" hint-placeholder-count="4">
           <article data-name="{{it.name}}" onClick="{{it.onOpen}}" style="{{it.rootStyle}}" style-hover="transform:translateY(-3px)">
             <!-- NEBULOSA: quieta y nitida. No se escala, no se filtra, no se toca. -->
             <div data-tex="{{it.texKey}}" style="position:absolute;inset:0;pointer-events:none;background-size:cover;background-position:center"></div>
@@ -568,6 +577,7 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
           </article>
         </sc-for>
       </div>
+      </sc-for>
       <sc-if value="{{fam.more}}" hint-placeholder-val="{{false}}">
         <button onClick="{{fam.onMore}}" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.03);border:1px dashed {{fam.edge}};color:{{fam.color}};font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;transition:.15s" style-hover="background:rgba(255,255,255,.07)">{{fam.moreLabel}}</button>
       </sc-if>
@@ -817,7 +827,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-09-29c";
+  BUILD = "2026-09-29d";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -875,10 +885,13 @@ class Component extends DCLogic {
     const s = t === 1 ? 100 : t === 2 ? 96 : t === 3 ? 66 : 14, l = t === 1 ? 68 : t === 2 ? 56 : t === 3 ? 70 : 42;
     return this.hsl2hex(this.hueMid(A[0], B[0]) + off, s, l); }
 
-  prioOf(a) { return a.p || ((a.pick || a.origin === 'rec') ? 2 : 3); }
+  // Pendientes por confirmar (Ken, 29-sep-2026): fichas con pocas fuentes sobre su sonido. No tienen
+  // tier ni ruta hasta que Ken las escuche; se pintan con el aspecto apagado del ③, van en un bloque
+  // aparte al final de su familia y quedan fuera de los filtros y recuentos de tier.
+  prioOf(a) { if (a.pend) return 3; return a.p || ((a.pick || a.origin === 'rec') ? 2 : 3); }
   // Tier 2.5 (Ken, 25-sep-2026): fichas del ② que sobresalen. Siguen siendo ② en color y animacion;
   // solo cambian la etiqueta y el orden (van antes que el resto del ②).
-  rankOf(a) { const p = this.prioOf(a); return (p === 2 && a.p25) ? 1.5 : p; }
+  rankOf(a) { if (a.pend) return 9; const p = this.prioOf(a); return (p === 2 && a.p25) ? 1.5 : p; }
   catOf(a) { return a.c || 2; }
   viaLabel(a) { if (a.via) return 'vía ' + a.via; if (a.origin === 'lista') return 'tu lista'; if (a.origin === 'heard') return 'ya escuchada'; return 'recomendada'; }
 
@@ -1499,7 +1512,7 @@ class Component extends DCLogic {
   toast(m) { this.setState({ toastMsg: m }); clearTimeout(this._toastT); this._toastT = setTimeout(() => this.setState({ toastMsg: '' }), 2200); }
   nextCandidates() {
     const { data, heard, chip, fem } = this.state; if (!data) return [];
-    return data.filter(a => !(heard || {})[a.name]
+    return data.filter(a => !(heard || {})[a.name] && !a.pend
       && (!chip || this.familyOf(a.genre) === chip)
       && (!fem || a.female))
       .sort((a, b) => this.rankOf(a) - this.rankOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
@@ -1510,7 +1523,7 @@ class Component extends DCLogic {
     const heard = this.state.heard || {};
     const isHeard = !!heard[a.name];
     this._vmCache = this._vmCache || {};
-    const ck = 'v51|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0);
+    const ck = 'v52|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0);
     if (this._vmCache[ck]) return this._vmCache[ck];
     const vm = this.buildVM(a, mode, drift, isHeard);
     this._vmCache[ck] = vm;
@@ -1531,7 +1544,7 @@ class Component extends DCLogic {
     const CAT_LABEL = { 1: 'cat 1 · reinvención', 2: 'cat 2 · identidad', 3: '✦ comodín' };
     const PRIO_LABEL = { 1: '① empieza aquí', 2: '② alta afinidad', 3: '③ más adelante', 4: '④ curiosidad' };
     const RN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV' };
-    const lv = (p === 2 && a.p25) ? '2.5 · sobresale del ② · II½' : ((isHeard && p === 1) ? '① pilar de tu gusto' : PRIO_LABEL[p]) + ' · ' + RN[p];
+    const lv = a.pend ? '⚠ por confirmar · sin tier' : (p === 2 && a.p25) ? '2.5 · sobresale del ② · II½' : ((isHeard && p === 1) ? '① pilar de tu gusto' : PRIO_LABEL[p]) + ' · ' + RN[p];
     const tagBase = "font-family:'Space Mono',monospace;padding:1px 7px;border-radius:99px;font-size:9px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;";
     const tags = co.parts.map(pt => { const tcol = this.subColor(pt); // color BASE real del subgénero (sin transformar por tier)
       const tlit = this.hsl2hex(this.hex2hsl(tcol)[0], 90, 70); // texto del tag aclarado para contraste
@@ -1839,8 +1852,8 @@ class Component extends DCLogic {
       bg: on ? '#C6FF3A' : 'transparent', color: on ? '#0a0a0c' : (on === false ? '#8b8f9e' : '#8b8f9e'), fw: on ? 700 : 400 });
     const statusSeg = [['all', 'Todos'], ['todo', 'Por escuchar'], ['done', 'Escuchados']]
       .map(([k, l]) => segBtn(l, s.fStatus === k, () => this.setState({ fStatus: k })));
-    const prioTitles = { 1: 'Empieza aquí: pioneros y esenciales para tu gusto', '2.5': 'Lo que sobresale dentro del ②', 2: 'Alta afinidad', 3: 'Más adelante', 4: 'Curiosidad / contexto' };
-    const prioSeg = [1, '2.5', 2, 3, 4].map(p => segBtn(String(p), !!s.fPrio[p],
+    const prioTitles = { 1: 'Empieza aquí: pioneros y esenciales para tu gusto', '2.5': 'Lo que sobresale dentro del ②', 2: 'Alta afinidad', 3: 'Más adelante', 4: 'Curiosidad / contexto', '⚠': 'Por confirmar: pendientes sin tier hasta que los escuches' };
+    const prioSeg = [1, '2.5', 2, 3, 4, '⚠'].map(p => segBtn(String(p), !!s.fPrio[p],
       () => { const f = { ...s.fPrio }; if (f[p]) delete f[p]; else f[p] = true; this.setState({ fPrio: f }); }, prioTitles[p]));
 
     // chips
@@ -1861,7 +1874,7 @@ class Component extends DCLogic {
       if (s.fStatus === 'done' && !isHeard) return false;
       if (s.fem && !a.female) return false;
       const pr = Object.keys(s.fPrio);
-      if (pr.length && !(s.fPrio[this.prioOf(a)] || (s.fPrio['2.5'] && this.prioOf(a) === 2 && a.p25))) return false;
+      if (pr.length && (a.pend ? !s.fPrio['⚠'] : !(s.fPrio[this.prioOf(a)] || (s.fPrio['2.5'] && this.prioOf(a) === 2 && a.p25)))) return false;
       if (s.chip && this.familyOf(a.genre) !== s.chip) return false;
       if (q && !(a.name.toLowerCase().includes(q) || a.genre.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))) return false;
       return true;
@@ -1872,24 +1885,31 @@ class Component extends DCLogic {
     const keys = Object.keys(groups).sort((x, y) => groups[y].length - groups[x].length || x.localeCompare(y));
     const families = keys.map(f => {
       const col = this.famColor(f);
-      const items = groups[f].slice().sort((a, b) =>
-        (!!heard[a.name]) - (!!heard[b.name]) || this.rankOf(a) - this.rankOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name));
-      const hc = groups[f].filter(a => heard[a.name]).length, tot = groups[f].length, pct = tot ? Math.round(hc / tot * 100) : 0;
+      const orden = (a, b) =>
+        (!!heard[a.name]) - (!!heard[b.name]) || this.rankOf(a) - this.rankOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name);
+      // las pendientes van en un bloque aparte al final de la familia y no cuentan con las de tier
+      const items = groups[f].filter(a => !a.pend).sort(orden);
+      const pend = groups[f].filter(a => a.pend).sort(orden);
+      const hc = items.filter(a => heard[a.name]).length, tot = items.length, pct = tot ? Math.round(hc / tot * 100) : 0;
       return {
         name: f, color: col,
         edge: this.rgba(col, .28),
         // banda de género al estilo clásico: resplandor del COLOR BASE del género
         bandBg: 'radial-gradient(150% 220% at 4% 0%,' + this.rgba(col, .22) + ',transparent 52%),rgba(255,255,255,.02)',
         secBg: 'radial-gradient(135% 580px at 8% -12%,' + this.rgba(col, .14) + ',transparent 58%),radial-gradient(80% 500px at 95% 0%,' + this.rgba(col, .08) + ',transparent 64%)',
-        meta: tot + ' artistas · ' + hc + '/' + tot + ' escuchados · ' + pct + '%',
+        meta: tot + ' artistas · ' + hc + '/' + tot + ' escuchados · ' + pct + '%' + (pend.length ? ' · ' + pend.length + ' por confirmar' : ''),
         pctW: pct + '%',
-        // todo de una vez: sin "ver más"
-        items: items.map(a => this.cardVM(a, mode, drift)),
+        // todo de una vez: sin "ver más". Primero las fichas con tier y, aparte, las pendientes.
+        blocks: [{ head: '', sub: '', items: items.map(a => this.cardVM(a, mode, drift)) }]
+          .concat(pend.length ? [{ head: '⚠ Por confirmar · ' + pend.length,
+            sub: 'Sin tier ni ruta hasta que las escuches: hay poca información sobre cómo suenan. Cada ficha dice qué se sabe y qué falta por confirmar.',
+            items: pend.map(a => this.cardVM(a, mode, drift)) }] : [])
+          .filter(b => b.items.length),
         more: false,
         moreLabel: '',
         onMore: () => {}
       };
-    }).filter(f => f.items.length);
+    }).filter(f => f.blocks.length);
 
     // detail modal VM
     const a = s.detail;
@@ -1898,7 +1918,7 @@ class Component extends DCLogic {
       const vm = this.cardVM(a, mode, false);
       const p = this.prioOf(a);
       const pl = ((heard[a.name] && p === 1) ? 'pilar de tu gusto' : { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p]);
-      dt = { ...vm, lv: ((p === 2 && a.p25) ? 'nivel 2.5 · sobresale del ②' : 'nivel ' + p + ' · ' + pl) + ' · ' + this.familyOf(a.genre),
+      dt = { ...vm, lv: (a.pend ? 'por confirmar · sin tier' : (p === 2 && a.p25) ? 'nivel 2.5 · sobresale del ②' : 'nivel ' + p + ' · ' + pl) + ' · ' + this.familyOf(a.genre),
         desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5) };
       if (s.dtRel === null) dtLoading = true;
       else {
