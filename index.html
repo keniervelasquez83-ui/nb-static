@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-09-29a"></script>
-<script src="./support.js?v=2026-09-29a"></script>
+<script src="./catalog-data.js?v=2026-09-29b"></script>
+<script src="./support.js?v=2026-09-29b"></script>
 </head>
 <body>
 <x-dc>
@@ -817,7 +817,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-09-29a";
+  BUILD = "2026-09-29b";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1545,6 +1545,9 @@ class Component extends DCLogic {
       { t: this.viaLabel(a), style: metaBase + 'rgba(255,255,255,.16);color:#9599a8' }
     ];
     if (p === 2 && a.p25) metas.push({ t: '▲ 2.5', style: metaBase + acc + ';color:' + acc });
+    // Ruta por la que la ficha pasa el filtro de Ken: "complejo" o "sustancia" (29-sep-2026)
+    if (a.ruta === 'complejo') metas.push({ t: '◆ complejo', style: metaBase + 'rgba(95,200,245,.45);color:#5FC8F5' });
+    else if (a.ruta === 'sustancia') metas.push({ t: '◇ sustancia', style: metaBase + 'rgba(127,224,168,.45);color:#7FE0A8' });
     if (a.female) metas.push({ t: '♀ fem', style: metaBase + 'rgba(182,107,255,.4);color:#B66BFF' });
     if (a.origin_note === 'rev') metas.push({ t: '⚠ confirmar', style: metaBase + 'rgba(255,178,59,.4);color:#FFB23B' });
     const nmShadow = (p === 1 ? '0 0 18px ' + this.rgba(c1, .5) + ',' : '') + '0 0 4px rgba(0,0,0,.98),0 0 10px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,1)';
