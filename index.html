@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-01c"></script>
-<script src="./support.js?v=2026-10-01c"></script>
+<script src="./catalog-data.js?v=2026-10-01d"></script>
+<script src="./support.js?v=2026-10-01d"></script>
 </head>
 <body>
 <x-dc>
@@ -827,7 +827,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-01c";
+  BUILD = "2026-10-01d";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1245,7 +1245,7 @@ class Component extends DCLogic {
       const pick = this.lsget('pick:' + name);
       el.innerHTML = this.genCover(name, cols);
       if (pick) { this.setImg(el, pick); continue; }
-      if (this._relCache[name] || this.lsget('rel2:' + name) != null) {
+      if (this._relCache[this.relKey(a)] || this.lsget('rel2:' + this.relKey(a)) != null) {
         this.getReleases(a, list => { const art = this.bestArt(list); if (art && el._covName === name) this.setImg(el, art); });
       } else this._covIO.observe(el);
     }
@@ -1283,7 +1283,11 @@ class Component extends DCLogic {
   cleanName(n) { return String(n || '').replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, ' ').replace(/\s+/g, ' ').trim(); }
   // igualdad tolerante: "Dillinger Escape Plan" ≡ "The Dillinger Escape Plan"
   nameEq(cand, nm) { const c = this.normT(cand); return c === nm || c === 'the ' + nm || 'the ' + c === nm; }
-  resolveArtist(a, cb) { const key = 'aid:' + a.name, c = this.lsget(key);
+  // artista fijado en la ficha (homónimos): itid / mbid / dzid; '0' = no existe en ese servicio
+  fixedId(v) { return v == null ? undefined : (String(v) === '0' ? null : String(v)); }
+  relKey(a) { return a.name + ((a.mbid || a.itid || a.dzid) ? '§' + [a.mbid || '', a.itid || '', a.dzid || ''].join(',') : ''); }
+  resolveArtist(a, cb) { if (a.itid != null) return cb(this.fixedId(a.itid));
+    const key = 'aid:' + a.name, c = this.lsget(key);
     if (c != null) return cb(c === '0' ? null : c);
     this.jsonp('https://itunes.apple.com/search?entity=musicArtist&limit=20&term=' + encodeURIComponent(this.cleanName(a.name)), d => {
       if (d == null) return cb(null);
@@ -1305,7 +1309,8 @@ class Component extends DCLogic {
     if (this._netFails >= 6) return cb(null);
     this._mbLast = this._mbLast || 0; const at = Math.max(Date.now(), this._mbLast + 1100); this._mbLast = at;
     setTimeout(() => { try { fetch(url).then(r => r.json()).then(cb).catch(() => { this._netFails = (this._netFails || 0) + 1; cb(null); }); } catch (e) { cb(null); } }, at - Date.now()); }
-  mbArtist(a, cb) { const key = 'mba:' + a.name, c = this.lsget(key);
+  mbArtist(a, cb) { if (a.mbid != null) return cb(this.fixedId(a.mbid));
+    const key = 'mba:' + a.name, c = this.lsget(key);
     if (c != null) return cb(c === '0' ? null : c);
     this.mbFetch('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=8&query=' + encodeURIComponent('artist:"' + this.cleanName(a.name) + '"'), d => {
       if (d == null) return cb(null);
@@ -1327,7 +1332,8 @@ class Component extends DCLogic {
       // regla: álbumes oficiales; si la banda NO tiene álbumes (ej. Pinkly Smooth), sus EPs de estudio
       cb(alb.length ? alb : eps); }); }
   // Deezer: TERCERA fuente de artwork (rescata bandas sin iTunes y con CAA roto)
-  dzArtist(a, cb) { const key = 'dza:' + a.name, c = this.lsget(key);
+  dzArtist(a, cb) { if (a.dzid != null) return cb(this.fixedId(a.dzid));
+    const key = 'dza:' + a.name, c = this.lsget(key);
     if (c != null) return cb(c === '0' ? null : c);
     this.jsonp('https://api.deezer.com/search/artist?output=jsonp&limit=12&q=' + encodeURIComponent(this.cleanName(a.name)), d => {
       if (d == null) return cb(null);
@@ -1362,7 +1368,7 @@ class Component extends DCLogic {
     if (out.length) { this._relCache[name] = out; this.lsset('rel2:' + name, JSON.stringify(out)); }
     cb(out); }
   netReady(cb) { if (document.readyState === 'complete') cb(); else window.addEventListener('load', () => setTimeout(cb, 300), { once: true }); }
-  getReleases(a, cb) { const name = a.name;
+  getReleases(a, cb) { const name = this.relKey(a);
     if (this._relCache[name]) return cb(this._relCache[name]);
     const ls = this.lsget('rel2:' + name); if (ls != null) { try { const arr = JSON.parse(ls); this._relCache[name] = arr; return cb(arr); } catch (e) {} }
     if (document.readyState !== 'complete') { this.netReady(() => this.getReleases(a, cb)); return; }
@@ -1429,7 +1435,7 @@ class Component extends DCLogic {
     if (this._netFails >= 6) { setTimeout(() => { this._netFails = 0; this.trickle(i); }, 45000); return; }
     const ALL = this.state.data; if (!ALL || i >= ALL.length) return;
     const a = ALL[i];
-    if (!this._relCache[a.name] && this.lsget('rel2:' + a.name) == null) {
+    if (!this._relCache[this.relKey(a)] && this.lsget('rel2:' + this.relKey(a)) == null) {
       this.getReleases(a, list => {
         const art = this.bestArt(list || []);
         if (art && !this.lsget('pick:' + a.name)) {
