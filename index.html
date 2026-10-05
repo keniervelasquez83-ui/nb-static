@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-04a"></script>
-<script src="./support.js?v=2026-10-04a"></script>
+<script src="./catalog-data.js?v=2026-10-05a"></script>
+<script src="./support.js?v=2026-10-05a"></script>
 </head>
 <body>
 <x-dc>
@@ -499,6 +499,11 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
       <button onClick="{{b.onClick}}" title="{{b.title}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{b.bg}};color:{{b.color}};font-weight:{{b.fw}}">{{b.label}}</button>
     </sc-for>
   </div>
+  <div style="display:flex;background:#121319;border:1px solid #23252f;border-radius:11px;overflow:hidden">
+    <sc-for list="{{ordenSeg}}" as="b" hint-placeholder-count="2">
+      <button onClick="{{b.onClick}}" title="{{b.title}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{b.bg}};color:{{b.color}};font-weight:{{b.fw}}">{{b.label}}</button>
+    </sc-for>
+  </div>
   <button onClick="{{openNext}}" title="Sugerir la siguiente banda para escuchar (por prioridad y año)" style="background:#121319;border:1px solid #23252f;color:#8b8f9e;padding:11px 14px;border-radius:11px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;transition:.18s;display:inline-flex;align-items:center;gap:7px">▶ ¿Qué sigo?</button>
   <button onClick="{{openBackup}}" style="background:#121319;border:1px solid #23252f;color:#8b8f9e;padding:11px 14px;border-radius:11px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;transition:.18s;display:inline-flex;align-items:center;gap:7px">⇅ Respaldo</button>
 </div>
@@ -701,6 +706,7 @@ class Component extends DCLogic {
     showN: {}, // per-family shown-card override (default 8, expands por lotes)
     mode: null, // texture mode: 'neb' | 'cum' | 'silk' (null → prop default)
     fStatus: 'all', fem: false, fPrio: {}, query: '', chip: null,
+    orden: (() => { try { return localStorage.getItem('orden') || 'anio'; } catch (e) { return 'anio'; } })(), // 'anio' | 'afin' (Ken, 5-oct-2026)
     heard: null, // null until loaded
     data: null,
     detail: null, dtRel: null,
@@ -827,7 +833,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-04a";
+  BUILD = "2026-10-05a";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1861,6 +1867,10 @@ class Component extends DCLogic {
     const prioTitles = { 1: 'Empieza aquí: pioneros y esenciales para tu gusto', '2.5': 'Lo que sobresale dentro del ②', 2: 'Alta afinidad', 3: 'Más adelante', 4: 'Curiosidad / contexto', '⚠': 'Por confirmar: pendientes sin tier hasta que los escuches' };
     const prioSeg = [1, '2.5', 2, 3, 4, '⚠'].map(p => segBtn(String(p), !!s.fPrio[p],
       () => { const f = { ...s.fPrio }; if (f[p]) delete f[p]; else f[p] = true; this.setState({ fPrio: f }); }, prioTitles[p]));
+    // orden dentro de cada tier: por antigüedad o por afinidad con el gusto de Ken (campo af, 0-100)
+    const ordenSeg = [['anio', 'Más vieja → nueva', 'Dentro de cada tier, de la banda más vieja a la más nueva'],
+      ['afin', 'Afinidad', 'Dentro de cada tier, primero lo que más probablemente te guste según tu plantilla de gustos']]
+      .map(([k, l, t]) => segBtn(l, (s.orden || 'anio') === k, () => { try { localStorage.setItem('orden', k); } catch (e) {} this.setState({ orden: k }); }, t));
 
     // chips
     const counts = {};
@@ -1892,7 +1902,9 @@ class Component extends DCLogic {
     const families = keys.map(f => {
       const col = this.famColor(f);
       const orden = (a, b) =>
-        (!!heard[a.name]) - (!!heard[b.name]) || this.rankOf(a) - this.rankOf(b) || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name);
+        (!!heard[a.name]) - (!!heard[b.name]) || this.rankOf(a) - this.rankOf(b)
+        || (s.orden === 'afin' ? (b.af == null ? -1 : b.af) - (a.af == null ? -1 : a.af) : 0)
+        || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name);
       // las pendientes van en un bloque aparte al final de la familia y no cuentan con las de tier
       const items = groups[f].filter(a => !a.pend).sort(orden);
       const pend = groups[f].filter(a => a.pend).sort(orden);
@@ -1962,7 +1974,7 @@ class Component extends DCLogic {
       stTotal: total, stHeard: heardN, stLeft: total - heardN, stGen: famAll,
       progW: (total ? Math.round(heardN / total * 100) : 0) + '%',
       onQuery: e => { const v = e.target.value.trim(); clearTimeout(this._qT); this._qT = setTimeout(() => this.setState({ query: v }), 280); },
-      statusSeg, prioSeg,
+      statusSeg, prioSeg, ordenSeg,
       onFem: () => this.setState({ fem: !s.fem }),
       femBg: s.fem ? '#C6FF3A' : 'transparent', femColor: s.fem ? '#0a0a0c' : '#8b8f9e', femFw: s.fem ? 700 : 400,
       chips, families, isEmpty: data ? !list.length : false,
