@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-05a"></script>
-<script src="./support.js?v=2026-10-05a"></script>
+<script src="./catalog-data.js?v=2026-10-06a"></script>
+<script src="./support.js?v=2026-10-06a"></script>
 </head>
 <body>
 <x-dc>
@@ -619,6 +619,14 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
       </div>
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b8f9e;margin:22px 26px 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);position:relative;z-index:1">La banda</div>
       <div style="font-size:14.5px;line-height:1.7;color:#d6d9e6;margin:14px 26px 0;position:relative;z-index:1">{{dt.desc}}</div>
+      <sc-if value="{{dt.hasAf}}" hint-placeholder-val="{{false}}">
+        <div style="margin:16px 26px 0;position:relative;z-index:1">
+          <button onClick="{{toggleAfx}}" title="Por qué tiene esta afinidad y este puesto dentro de su tier" style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid rgba(255,214,102,.45);background:rgba(255,214,102,.08);color:#FFD666;cursor:pointer">{{dt.afBtn}}</button>
+          <sc-if value="{{afxOpen}}" hint-placeholder-val="{{false}}">
+            <div style="margin-top:10px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,214,102,.25);background:rgba(255,214,102,.05);font-size:13.5px;line-height:1.65;color:#d6d9e6;white-space:pre-line">{{dt.afx}}</div>
+          </sc-if>
+        </div>
+      </sc-if>
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b8f9e;margin:22px 26px 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)">Portada · elige el artwork oficial</div>
       <div style="display:flex;gap:10px;margin:8px 26px 0;flex-wrap:wrap">
         <sc-if value="{{dtLoading}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#8b8f9e;margin:6px 0">buscando artwork oficial…</div></sc-if>
@@ -833,7 +841,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-05a";
+  BUILD = "2026-10-06a";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1519,7 +1527,7 @@ class Component extends DCLogic {
     if (h[name]) delete h[name]; else h[name] = 1;
     this.saveHeard(h); this.setState({ heard: h });
   }
-  openDetail(a) { this.setState({ detail: a, dtRel: null });
+  openDetail(a) { this.setState({ detail: a, dtRel: null, afxOpen: false });
     this.getReleases(a, list => { if (this.state.detail && this.state.detail.name === a.name) this.setState({ dtRel: list }); }); }
   toast(m) { this.setState({ toastMsg: m }); clearTimeout(this._toastT); this._toastT = setTimeout(() => this.setState({ toastMsg: '' }), 2200); }
   nextCandidates() {
@@ -1535,7 +1543,8 @@ class Component extends DCLogic {
     const heard = this.state.heard || {};
     const isHeard = !!heard[a.name];
     this._vmCache = this._vmCache || {};
-    const ck = 'v52|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0);
+    const afin = this.state.orden === 'afin' && a.af != null;
+    const ck = 'v53|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0) + '|' + (afin ? 1 : 0);
     if (this._vmCache[ck]) return this._vmCache[ck];
     const vm = this.buildVM(a, mode, drift, isHeard);
     this._vmCache[ck] = vm;
@@ -1573,6 +1582,8 @@ class Component extends DCLogic {
     // Ruta por la que la ficha pasa el filtro de Ken: "complejo" o "sustancia" (29-sep-2026)
     if (a.ruta === 'complejo') metas.push({ t: '◆ complejo', style: metaBase + 'rgba(95,200,245,.45);color:#5FC8F5' });
     else if (a.ruta === 'sustancia') metas.push({ t: '◇ sustancia', style: metaBase + 'rgba(127,224,168,.45);color:#7FE0A8' });
+    // Con el orden por afinidad, la tarjeta enseña el número (la explicación está en la ficha abierta)
+    if (this.state.orden === 'afin' && a.af != null) metas.push({ t: '♥ afinidad ' + a.af, style: metaBase + 'rgba(255,214,102,.45);color:#FFD666' });
     if (a.female) metas.push({ t: '♀ fem', style: metaBase + 'rgba(182,107,255,.4);color:#B66BFF' });
     if (a.origin_note === 'rev') metas.push({ t: '⚠ confirmar', style: metaBase + 'rgba(255,178,59,.4);color:#FFB23B' });
     const nmShadow = (p === 1 ? '0 0 18px ' + this.rgba(c1, .5) + ',' : '') + '0 0 4px rgba(0,0,0,.98),0 0 10px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,1)';
@@ -1937,7 +1948,10 @@ class Component extends DCLogic {
       const p = this.prioOf(a);
       const pl = ((heard[a.name] && p === 1) ? 'pilar de tu gusto' : { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p]);
       dt = { ...vm, lv: (a.pend ? 'por confirmar · sin tier' : (p === 2 && a.p25) ? 'nivel 2.5 · sobresale del ②' : 'nivel ' + p + ' · ' + pl) + ' · ' + this.familyOf(a.genre),
-        desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5) };
+        desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5),
+        // Afinidad (Ken, 6-oct-2026): número y, detrás de un botón, por qué tiene esa afinidad y ese puesto
+        hasAf: a.af != null, afBtn: 'Afinidad ' + a.af + '/100' + (a.afx ? (s.afxOpen ? ' · ocultar' : ' · ¿por qué?') : ''),
+        afx: a.afx || '' };
       if (s.dtRel === null) dtLoading = true;
       else {
         const withArt = s.dtRel.filter(r => r.art);
@@ -1981,6 +1995,7 @@ class Component extends DCLogic {
       // detail
       detailOpen: !!a, dt, dtPicker, dtAlbums, dtLoading, dtNoArt, dtDiscEmpty,
       closeDetail: () => this.setState({ detail: null, dtRel: null }),
+      afxOpen: !!s.afxOpen, toggleAfx: e => { if (e && e.stopPropagation) e.stopPropagation(); if (a && a.afx) this.setState({ afxOpen: !s.afxOpen }); },
       onDetailBg: e => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-modalbg') === 'detail') this.setState({ detail: null, dtRel: null }); },
       // next
       nextOpen: s.nextOpen, nx, nextInfo,
