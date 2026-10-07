@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-07c"></script>
-<script src="./support.js?v=2026-10-07c"></script>
+<script src="./catalog-data.js?v=2026-10-07d"></script>
+<script src="./support.js?v=2026-10-07d"></script>
 </head>
 <body>
 <x-dc>
@@ -500,7 +500,7 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
     </sc-for>
   </div>
   <div style="display:flex;background:#121319;border:1px solid #23252f;border-radius:11px;overflow:hidden">
-    <sc-for list="{{ordenSeg}}" as="b" hint-placeholder-count="2">
+    <sc-for list="{{ordenSeg}}" as="b" hint-placeholder-count="3">
       <button onClick="{{b.onClick}}" title="{{b.title}}" style="border:none;padding:11px 15px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.18s;white-space:nowrap;background:{{b.bg}};color:{{b.color}};font-weight:{{b.fw}}">{{b.label}}</button>
     </sc-for>
   </div>
@@ -841,7 +841,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-07c";
+  BUILD = "2026-10-07d";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1543,7 +1543,7 @@ class Component extends DCLogic {
     const heard = this.state.heard || {};
     const isHeard = !!heard[a.name];
     this._vmCache = this._vmCache || {};
-    const afin = this.state.orden === 'afin' && a.af != null;
+    const afin = (this.state.orden === 'afin' || this.state.orden === 'afing') && a.af != null;
     const ck = 'v53|' + a.name + '|' + mode + '|' + (isHeard ? 1 : 0) + '|' + (drift ? 1 : 0) + '|' + (afin ? 1 : 0);
     if (this._vmCache[ck]) return this._vmCache[ck];
     const vm = this.buildVM(a, mode, drift, isHeard);
@@ -1583,7 +1583,7 @@ class Component extends DCLogic {
     if (a.ruta === 'complejo') metas.push({ t: '◆ complejo', style: metaBase + 'rgba(95,200,245,.45);color:#5FC8F5' });
     else if (a.ruta === 'sustancia') metas.push({ t: '◇ sustancia', style: metaBase + 'rgba(127,224,168,.45);color:#7FE0A8' });
     // Con el orden por afinidad, la tarjeta enseña el número (la explicación está en la ficha abierta)
-    if (this.state.orden === 'afin' && a.af != null) metas.push({ t: '♥ afinidad ' + a.af, style: metaBase + 'rgba(255,214,102,.45);color:#FFD666' });
+    if ((this.state.orden === 'afin' || this.state.orden === 'afing') && a.af != null) metas.push({ t: '♥ afinidad ' + a.af, style: metaBase + 'rgba(255,214,102,.45);color:#FFD666' });
     if (a.female) metas.push({ t: '♀ fem', style: metaBase + 'rgba(182,107,255,.4);color:#B66BFF' });
     if (a.origin_note === 'rev') metas.push({ t: '⚠ confirmar', style: metaBase + 'rgba(255,178,59,.4);color:#FFB23B' });
     const nmShadow = (p === 1 ? '0 0 18px ' + this.rgba(c1, .5) + ',' : '') + '0 0 4px rgba(0,0,0,.98),0 0 10px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,1)';
@@ -1880,7 +1880,8 @@ class Component extends DCLogic {
       () => { const f = { ...s.fPrio }; if (f[p]) delete f[p]; else f[p] = true; this.setState({ fPrio: f }); }, prioTitles[p]));
     // orden dentro de cada tier: por antigüedad o por afinidad con el gusto de Ken (campo af, 0-100)
     const ordenSeg = [['anio', 'Más vieja → nueva', 'Dentro de cada tier, de la banda más vieja a la más nueva'],
-      ['afin', 'Afinidad', 'Dentro de cada tier, primero lo que más probablemente te guste según tu plantilla de gustos']]
+      ['afin', 'Afinidad por tier', 'Dentro de cada tier, primero lo que más probablemente te guste según tu plantilla de gustos'],
+      ['afing', 'Afinidad global', 'Toda la familia junta, sin separar por tiers: primero lo que más probablemente te guste (las escuchadas y las por confirmar siguen aparte)']]
       .map(([k, l, t]) => segBtn(l, (s.orden || 'anio') === k, () => { try { localStorage.setItem('orden', k); } catch (e) {} this.setState({ orden: k }); }, t));
 
     // chips
@@ -1913,7 +1914,10 @@ class Component extends DCLogic {
     const families = keys.map(f => {
       const col = this.famColor(f);
       const orden = (a, b) =>
-        (!!heard[a.name]) - (!!heard[b.name]) || this.rankOf(a) - this.rankOf(b)
+        (!!heard[a.name]) - (!!heard[b.name])
+        // afinidad global (Ken, 7-oct-2026): toda la familia por afinidad, sin separar por tiers; el tier solo desempata
+        || (s.orden === 'afing' ? (b.af == null ? -1 : b.af) - (a.af == null ? -1 : a.af) : 0)
+        || this.rankOf(a) - this.rankOf(b)
         || (s.orden === 'afin' ? (b.af == null ? -1 : b.af) - (a.af == null ? -1 : a.af) : 0)
         || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name);
       // las pendientes van en un bloque aparte al final de la familia y no cuentan con las de tier
