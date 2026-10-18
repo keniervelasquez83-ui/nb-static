@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-13d"></script>
-<script src="./support.js?v=2026-10-13d"></script>
+<script src="./catalog-data.js?v=2026-10-19a"></script>
+<script src="./support.js?v=2026-10-19a"></script>
 </head>
 <body>
 <x-dc>
@@ -841,7 +841,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-13d";
+  BUILD = "2026-10-19a";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1881,7 +1881,7 @@ class Component extends DCLogic {
     // orden dentro de cada tier: por antigüedad o por afinidad con el gusto de Ken (campo af, 0-100)
     const ordenSeg = [['anio', 'Más vieja → nueva', 'Dentro de cada tier, de la banda más vieja a la más nueva'],
       ['afin', 'Afinidad por tier', 'Dentro de cada tier, primero lo que más probablemente te guste según tu plantilla de gustos'],
-      ['afing', 'Afinidad global', 'Toda la familia junta, sin separar por tiers: primero lo que más probablemente te guste (las escuchadas y las por confirmar siguen aparte)']]
+      ['afing', 'Afinidad global', 'Toda la familia junta, sin separar por tiers: primero lo que más probablemente te guste (las escuchadas van junto a las demás; solo las por confirmar siguen aparte)']]
       .map(([k, l, t]) => segBtn(l, (s.orden || 'anio') === k, () => { try { localStorage.setItem('orden', k); } catch (e) {} this.setState({ orden: k }); }, t));
 
     // chips
@@ -1913,10 +1913,10 @@ class Component extends DCLogic {
     const keys = Object.keys(groups).sort((x, y) => groups[y].length - groups[x].length || x.localeCompare(y));
     const families = keys.map(f => {
       const col = this.famColor(f);
+      // las escuchadas se ordenan junto a las demás, sin grupo aparte (Ken, 18-oct-2026); para ocultarlas está el filtro de estado
       const orden = (a, b) =>
-        (!!heard[a.name]) - (!!heard[b.name])
         // afinidad global (Ken, 7-oct-2026): toda la familia por afinidad, sin separar por tiers; el tier solo desempata
-        || (s.orden === 'afing' ? (b.af == null ? -1 : b.af) - (a.af == null ? -1 : a.af) : 0)
+        (s.orden === 'afing' ? (b.af == null ? -1 : b.af) - (a.af == null ? -1 : a.af) : 0)
         || this.rankOf(a) - this.rankOf(b)
         || (s.orden === 'afin' ? (b.af == null ? -1 : b.af) - (a.af == null ? -1 : a.af) : 0)
         || (a.y || 9999) - (b.y || 9999) || a.name.localeCompare(b.name);
