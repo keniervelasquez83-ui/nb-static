@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-19i"></script>
-<script src="./support.js?v=2026-10-19i"></script>
+<script src="./catalog-data.js?v=2026-10-20a"></script>
+<script src="./support.js?v=2026-10-20a"></script>
 </head>
 <body>
 <x-dc>
@@ -618,12 +618,42 @@ window.__prof={};window.__pf=function(k,ms){var p=window.__prof;p[k]=p[k]||[0,0,
         <sc-if value="{{dt.rev}}" hint-placeholder-val="{{false}}"><span style="padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.15);color:#8b8f9e">⚠ por confirmar</span></sc-if>
       </div>
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8b8f9e;margin:22px 26px 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);position:relative;z-index:1">La banda</div>
-      <div style="font-size:14.5px;line-height:1.7;color:#d6d9e6;margin:14px 26px 0;position:relative;z-index:1">{{dt.desc}}</div>
+      <sc-if value="{{dt.descVieja}}" hint-placeholder-val="{{true}}">
+        <div style="font-size:14.5px;line-height:1.7;color:#d6d9e6;margin:14px 26px 0;position:relative;z-index:1">{{dt.desc}}</div>
+      </sc-if>
+      <!-- Texto por bloques (19-oct-2026): títulos, párrafos, aviso de borde, lista de discos con su marca y la entrada -->
+      <sc-if value="{{dt.descNueva}}" hint-placeholder-val="{{false}}">
+        <div style="margin:4px 26px 0;position:relative;z-index:1;max-width:72ch">
+          <sc-for list="{{dt.bloques}}" as="bl" hint-placeholder-count="0">
+            <sc-if value="{{bl.isH}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:{{dt.acc}};margin:20px 0 7px">{{bl.t}}</div></sc-if>
+            <sc-if value="{{bl.isP}}" hint-placeholder-val="{{false}}"><p style="font-size:14.5px;line-height:1.7;color:#d6d9e6;margin:0 0 10px">{{bl.t}}</p></sc-if>
+            <sc-if value="{{bl.isAviso}}" hint-placeholder-val="{{false}}"><div style="margin:14px 0 4px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,178,59,.4);background:rgba(255,178,59,.07);font-size:14px;line-height:1.6;color:#e8e2d2">{{bl.t}}</div></sc-if>
+            <sc-if value="{{bl.isDisco}}" hint-placeholder-val="{{false}}">
+              <div style="display:grid;grid-template-columns:70px 1fr;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07)">
+                <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:{{bl.mc}};padding-top:3px">{{bl.mark}}</div>
+                <div style="font-size:14px;line-height:1.62;color:#d6d9e6;min-width:0"><span style="font-weight:600;color:#ECEEF2">{{bl.title}}</span> <span style="font-family:'Space Mono',monospace;font-size:11px;color:#8b8f9e">{{bl.year}}</span><br>{{bl.t}}</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{bl.isEntrada}}" hint-placeholder-val="{{false}}"><div style="border-left:2px solid {{dt.acc}};padding:2px 0 2px 12px;font-size:14.5px;line-height:1.65;color:#d6d9e6">{{bl.t}}</div></sc-if>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{dt.hasAf}}" hint-placeholder-val="{{false}}">
         <div style="margin:16px 26px 0;position:relative;z-index:1">
           <button onClick="{{toggleAfx}}" title="Por qué tiene esta afinidad y este puesto dentro de su tier" style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid rgba(255,214,102,.45);background:rgba(255,214,102,.08);color:#FFD666;cursor:pointer">{{dt.afBtn}}</button>
           <sc-if value="{{afxOpen}}" hint-placeholder-val="{{false}}">
-            <div style="margin-top:10px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,214,102,.25);background:rgba(255,214,102,.05);font-size:13.5px;line-height:1.65;color:#d6d9e6;white-space:pre-line">{{dt.afx}}</div>
+            <sc-if value="{{dt.afxVieja}}" hint-placeholder-val="{{true}}">
+              <div style="margin-top:10px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,214,102,.25);background:rgba(255,214,102,.05);font-size:13.5px;line-height:1.65;color:#d6d9e6;white-space:pre-line">{{dt.afx}}</div>
+            </sc-if>
+            <sc-if value="{{dt.afxNueva}}" hint-placeholder-val="{{false}}">
+              <div style="margin-top:10px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,214,102,.25);background:rgba(255,214,102,.05);font-size:13.5px;line-height:1.65;color:#d6d9e6;max-width:72ch">
+                <sc-for list="{{dt.afxB}}" as="ax" hint-placeholder-count="0">
+                  <sc-if value="{{ax.isCab}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#FFD666;margin-bottom:6px">{{ax.t}}</div></sc-if>
+                  <sc-if value="{{ax.isH}}" hint-placeholder-val="{{false}}"><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#FFD666;margin:14px 0 5px;opacity:.85">{{ax.t}}</div></sc-if>
+                  <sc-if value="{{ax.isP}}" hint-placeholder-val="{{false}}"><p style="margin:0 0 9px">{{ax.t}}</p></sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
           </sc-if>
         </div>
       </sc-if>
@@ -841,7 +871,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-19i";
+  BUILD = "2026-10-20a";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -903,6 +933,37 @@ class Component extends DCLogic {
   // tier ni ruta hasta que Ken las escuche; se pintan con el aspecto apagado del ③, van en un bloque
   // aparte al final de su familia y quedan fuera de los filtros y recuentos de tier.
   prioOf(a) { if (a.pend) return 3; return a.p || ((a.pick || a.origin === 'rec') ? 2 : 3); }
+  // Textos por bloques (Ken, 19-oct-2026): una desc con saltos de línea se dibuja por bloques. Cada línea es un título
+  // conocido, un disco ("▲ Título (año): texto"), la entrada ("Entrada: ...") o un párrafo. Las desc de una sola línea
+  // se dibujan como siempre. La búsqueda y los scripts siguen leyendo la misma cadena ("El mapa:" y "Entrada:" se conservan).
+  descPlano(d) {
+    d = d || ''; if (d.indexOf('\n') < 0) return d;
+    const L = d.split('\n').map(s => s.trim()).filter(Boolean); const i = L.indexOf('En corto');
+    if (i >= 0 && L[i + 1]) return L[i + 1];
+    return L.filter(l => !this.TIT_DESC.includes(l) && l !== 'El mapa:').join(' ');
+  }
+  descBloques(d) {
+    const MARCA = { '▲': ['arriba', '#7fd6a2'], '●': ['medio', '#a9adbf'], '▼': ['abajo', '#ef8a7a'], '·': ['', '#8b8f9e'] };
+    const out = [];
+    for (const l of String(d || '').split('\n').map(s => s.trim()).filter(Boolean)) {
+      const b = { isH: false, isP: false, isAviso: false, isDisco: false, isEntrada: false, t: '', mark: '', mc: '', title: '', year: '' };
+      let m;
+      if (this.TIT_DESC.includes(l)) { b.isH = true; b.t = l; }
+      else if (l === 'El mapa:') { b.isH = true; b.t = 'Disco a disco'; }
+      else if (/^Entrada:/.test(l)) { out.push({ ...b, isH: true, t: 'Por dónde entrar' }); b.isEntrada = true; b.t = l.replace(/^Entrada:\s*/, ''); }
+      else if ((m = l.match(/^([▲●▼·]) (.+) \((\d{4})\): (.*)$/))) { b.isDisco = true; b.mark = MARCA[m[1]][0]; b.mc = MARCA[m[1]][1]; b.title = m[2]; b.year = m[3]; b.t = m[4]; }
+      else if (/^Ojo, está en el borde/.test(l)) { b.isAviso = true; b.t = l; }
+      else { b.isP = true; b.t = l; }
+      out.push(b);
+    }
+    return out;
+  }
+  afxBloques(x) {
+    return String(x || '').split('\n').map(s => s.trim()).filter(Boolean).map((l, i) =>
+      ({ isCab: i === 0, isH: i > 0 && this.TIT_AFX.includes(l), isP: i > 0 && !this.TIT_AFX.includes(l), t: l }));
+  }
+  TIT_DESC = ['En corto', 'Cómo suena', 'Lo mejor', 'Lo que flojea'];
+  TIT_AFX = ['Por qué encaja contigo', 'Lo que la frena', 'Dónde queda en su tier'];
   // Tier 2.5 (Ken, 25-sep-2026): fichas del ② que sobresalen. Siguen siendo ② en color y animacion;
   // solo cambian la etiqueta y el orden (van antes que el resto del ②).
   rankOf(a) { if (a.pend) return 9; const p = this.prioOf(a); return (p === 2 && a.p25) ? 1.5 : p; }
@@ -1834,7 +1895,7 @@ class Component extends DCLogic {
       name: a.name, onOpen: this._h[a.name].onOpen, onToggle: this._h[a.name].onToggle,
       rootStyle, borderCol, shadow, ring, opacity, covFilter,
       lv, lvColor, deco, nmShadow,
-      tags, yr: a.y || '', ds: a.desc,
+      tags, yr: a.y || '', ds: this.descPlano(a.desc),
       acc, cat: CAT_LABEL[c], via: this.viaLabel(a),
       metas, fem: !!a.female, rev: a.origin_note === 'rev',
       chkBorder, chkBg, chkColor,
@@ -1953,6 +2014,8 @@ class Component extends DCLogic {
       const pl = ((heard[a.name] && p === 1) ? 'pilar de tu gusto' : { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p]);
       dt = { ...vm, lv: (a.pend ? 'por confirmar · sin tier' : (p === 2 && a.p25) ? 'nivel 2.5 · sobresale del ②' : 'nivel ' + p + ' · ' + pl) + ' · ' + this.familyOf(a.genre),
         desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5),
+        descNueva: (a.desc || '').indexOf('\n') >= 0, descVieja: (a.desc || '').indexOf('\n') < 0, bloques: this.descBloques(a.desc),
+        afxNueva: (a.afx || '').indexOf('\nPor qué encaja contigo\n') >= 0, afxVieja: (a.afx || '').indexOf('\nPor qué encaja contigo\n') < 0, afxB: this.afxBloques(a.afx),
         // Afinidad (Ken, 6-oct-2026): número y, detrás de un botón, por qué tiene esa afinidad y ese puesto
         hasAf: a.af != null, afBtn: 'Afinidad ' + a.af + '/100' + (a.afx ? (s.afxOpen ? ' · ocultar' : ' · ¿por qué?') : ''),
         afx: a.afx || '' };
