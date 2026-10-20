@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./catalog-data.js?v=2026-10-20a"></script>
-<script src="./support.js?v=2026-10-20a"></script>
+<script src="./catalog-data.js?v=2026-10-20b"></script>
+<script src="./support.js?v=2026-10-20b"></script>
 </head>
 <body>
 <x-dc>
@@ -871,7 +871,7 @@ class Component extends DCLogic {
   ];
   // Subir esto en cada cambio que se despliegue: aparece bajo la barra de progreso y
   // permite ver de un vistazo si Netlify (o el cache del navegador) sirve lo ultimo.
-  BUILD = "2026-10-20a";
+  BUILD = "2026-10-20b";
 
   FAMILY_COLOR = {"Musicales / Teatro":"#FCD34D","Hip-Hop / R&B":"#FBBF24","Melodic Death":"#C6FF3A","Deathcore":"#EF4444","Death / Tech Death":"#D42A2A","Mathcore / Caótico":"#F97316","Metalcore":"#FF3B6B","Prog / Djent":"#3BE0FF","Power / Symphonic / Folk":"#FFD93B","Black / Doom / Sludge":"#9B8CFF","Thrash / Groove / Heavy":"#FB923C","Nu Metal / Industrial":"#9B6BFF","Alt Metal / Grunge":"#7FB0FF","Avant-garde / Experimental":"#B6FF3A","Funk / Jazz":"#FBBF24","Post-Rock / Instrumental":"#6B9BFF","Punk / Emo":"#F43F5E","Art Pop / Teatral":"#F472B6","Indie / Psych / Garage":"#3BFFB2","Synth / Electrónico":"#FF6BD6","Pop / K-Pop":"#F472B6","Prog Rock clásico":"#22D3EE","Rock clásico / Hard Rock":"#7FB0FF","Clásica moderna":"#E07BFF","Folk / Músicas del mundo":"#5AD95A","Por confirmar":"#8a8ea6","Otros":"#8a8ea6"};
 
@@ -1626,7 +1626,7 @@ class Component extends DCLogic {
     const CAT_LABEL = { 1: 'cat 1 · reinvención', 2: 'cat 2 · identidad', 3: '✦ comodín' };
     const PRIO_LABEL = { 1: '① empieza aquí', 2: '② alta afinidad', 3: '③ más adelante', 4: '④ curiosidad' };
     const RN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV' };
-    const lv = a.pend ? '⚠ por confirmar · sin tier' : (p === 2 && a.p25) ? '2.5 · sobresale del ② · II½' : ((isHeard && p === 1) ? '① pilar de tu gusto' : PRIO_LABEL[p]) + ' · ' + RN[p];
+    const lv = a.pend ? '⚠ por confirmar · sin tier' : (p === 2 && a.p25) ? '2.5 · sobresale del ② · II½' : PRIO_LABEL[p] + ' · ' + RN[p];
     const tagBase = "font-family:'Space Mono',monospace;padding:1px 7px;border-radius:99px;font-size:9px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;";
     const tags = co.parts.map(pt => { const tcol = this.subColor(pt); // color BASE real del subgénero (sin transformar por tier)
       const tlit = this.hsl2hex(this.hex2hsl(tcol)[0], 90, 70); // texto del tag aclarado para contraste
@@ -2011,7 +2011,7 @@ class Component extends DCLogic {
     if (a) {
       const vm = this.cardVM(a, mode, false);
       const p = this.prioOf(a);
-      const pl = ((heard[a.name] && p === 1) ? 'pilar de tu gusto' : { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p]);
+      const pl = { 1: 'empieza aquí', 2: 'alta afinidad', 3: 'más adelante', 4: 'curiosidad' }[p];
       dt = { ...vm, lv: (a.pend ? 'por confirmar · sin tier' : (p === 2 && a.p25) ? 'nivel 2.5 · sobresale del ②' : 'nivel ' + p + ' · ' + pl) + ' · ' + this.familyOf(a.genre),
         desc: a.desc, edge: this.rgba(vm.acc === '#8b8f9e' ? '#8a8ea6' : vm.acc, .5),
         descNueva: (a.desc || '').indexOf('\n') >= 0, descVieja: (a.desc || '').indexOf('\n') < 0, bloques: this.descBloques(a.desc),
